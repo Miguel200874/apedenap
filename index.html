@@ -1,27 +1,1648 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDEM - Conectando corações</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.49.1"
-  }
-}
-</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tennis Career - Modo Carreira</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a1a; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
+  
+  /* SCREENS */
+  .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  
+  /* MENU */
+  #menuScreen { background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a1a2e 100%); }
+  .menu-title { font-size: 64px; font-weight: 900; background: linear-gradient(90deg, #00d4ff, #7b2fff, #ff6b35); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; margin-bottom: 10px; letter-spacing: 2px; }
+  .menu-subtitle { font-size: 18px; color: #888; margin-bottom: 50px; letter-spacing: 4px; text-transform: uppercase; }
+  .menu-btn { background: linear-gradient(135deg, #7b2fff, #00d4ff); border: none; color: #fff; padding: 16px 48px; font-size: 18px; font-weight: 700; border-radius: 50px; cursor: pointer; margin: 8px; transition: all 0.3s; letter-spacing: 1px; min-width: 220px; }
+  .menu-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(123,47,255,0.5); }
+  .menu-btn.secondary { background: transparent; border: 2px solid #7b2fff; }
+  .menu-btn.secondary:hover { background: rgba(123,47,255,0.2); }
+  .menu-btn.danger { background: linear-gradient(135deg, #ff3366, #ff6b35); }
+  .tennis-ball-deco { width: 80px; height: 80px; background: radial-gradient(circle at 35% 35%, #c8ff00, #8bc34a); border-radius: 50%; margin: 0 auto 30px; box-shadow: 0 0 40px rgba(200,255,0,0.4); animation: float 3s ease-in-out infinite; position: relative; }
+  .tennis-ball-deco::after { content: ''; position: absolute; top: 20%; left: 10%; width: 80%; height: 60%; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; transform: rotate(-30deg); }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+  
+  /* CREATE PLAYER */
+  #createScreen { background: linear-gradient(135deg, #0a0a1a, #1a1a3e); }
+  .create-form { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; width: 500px; max-width: 95vw; }
+  .create-form h2 { font-size: 28px; margin-bottom: 30px; text-align: center; color: #00d4ff; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; margin-bottom: 8px; color: #aaa; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .form-group input, .form-group select { width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: border-color 0.3s; }
+  .form-group input:focus, .form-group select:focus { border-color: #7b2fff; }
+  .form-group select option { background: #1a1a3e; }
+  .attr-points { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .attr-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; }
+  .attr-item label { font-size: 12px; color: #888; }
+  .attr-item .attr-val { font-size: 20px; font-weight: 700; color: #00d4ff; }
+  .attr-item .attr-btns { display: flex; gap: 8px; margin-top: 6px; }
+  .attr-btn { background: rgba(123,47,255,0.3); border: 1px solid #7b2fff; color: #fff; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .attr-btn:hover { background: rgba(123,47,255,0.6); }
+  .points-left { text-align: center; margin: 15px 0; color: #ff6b35; font-weight: 700; font-size: 16px; }
+  
+  /* CAREER */
+  #careerScreen { background: #0a0a1a; flex-direction: row; align-items: stretch; justify-content: flex-start; }
+  .career-sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.08); padding: 20px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+  .career-main { flex: 1; padding: 20px; overflow-y: auto; }
+  .player-card { background: linear-gradient(135deg, rgba(123,47,255,0.2), rgba(0,212,255,0.1)); border: 1px solid rgba(123,47,255,0.3); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+  .player-name { font-size: 18px; font-weight: 700; color: #fff; }
+  .player-rank { font-size: 13px; color: #00d4ff; margin-top: 4px; }
+  .player-money { font-size: 15px; color: #ffd700; margin-top: 4px; font-weight: 700; }
+  .stat-bar { margin-top: 8px; }
+  .stat-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 3px; }
+  .stat-bar-track { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .stat-bar-fill { height: 100%; background: linear-gradient(90deg, #7b2fff, #00d4ff); border-radius: 3px; transition: width 0.5s; }
+  .xp-bar { margin-top: 10px; }
+  .xp-bar-track { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: linear-gradient(90deg, #ff6b35, #ffd700); border-radius: 4px; transition: width 0.5s; }
+  .sidebar-nav-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #ccc; padding: 12px 16px; border-radius: 10px; cursor: pointer; text-align: left; font-size: 14px; transition: all 0.2s; }
+  .sidebar-nav-btn:hover, .sidebar-nav-btn.active { background: rgba(123,47,255,0.2); border-color: #7b2fff; color: #fff; }
+  .career-section { display: none; }
+  .career-section.active { display: block; }
+  .section-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; color: #00d4ff; }
+  
+  /* TOURNAMENTS */
+  .tournament-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .tournament-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+  .tournament-card:hover { transform: translateY(-4px); border-color: #7b2fff; box-shadow: 0 8px 30px rgba(123,47,255,0.3); }
+  .tournament-card.locked { opacity: 0.4; cursor: not-allowed; }
+  .tournament-card.locked:hover { transform: none; box-shadow: none; }
+  .t-tier { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+  .t-tier.grand-slam { color: #ffd700; }
+  .t-tier.masters { color: #c0c0c0; }
+  .t-tier.atp500 { color: #00d4ff; }
+  .t-tier.atp250 { color: #7b2fff; }
+  .t-tier.challenger { color: #ff6b35; }
+  .t-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .t-prize { color: #ffd700; font-size: 14px; }
+  .t-surface { font-size: 12px; color: #888; margin-top: 4px; }
+  .t-lock-icon { position: absolute; top: 12px; right: 12px; font-size: 18px; }
+  
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+  .stat-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-card .val { font-size: 36px; font-weight: 900; color: #00d4ff; }
+  .stat-card .lbl { font-size: 13px; color: #888; margin-top: 4px; }
+  
+  /* SHOP */
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .shop-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; text-align: center; transition: all 0.3s; }
+  .shop-item:hover { border-color: #ffd700; }
+  .shop-item .item-icon { font-size: 40px; margin-bottom: 10px; }
+  .shop-item .item-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .shop-item .item-desc { font-size: 12px; color: #888; margin-bottom: 12px; }
+  .shop-item .item-price { color: #ffd700; font-weight: 700; margin-bottom: 10px; }
+  .shop-item .item-bonus { font-size: 11px; color: #00d4ff; margin-bottom: 10px; }
+  .buy-btn { background: linear-gradient(135deg, #ffd700, #ff6b35); border: none; color: #000; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.2s; }
+  .buy-btn:hover { transform: scale(1.05); }
+  .buy-btn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+  .owned-badge { background: rgba(0,212,255,0.2); border: 1px solid #00d4ff; color: #00d4ff; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  
+  /* ATTRIBUTES */
+  .attr-upgrade-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .attr-upgrade-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; }
+  .attr-upgrade-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .attr-upgrade-card .attr-desc { font-size: 12px; color: #888; margin-bottom: 12px; }
+  .attr-upgrade-card .attr-current { font-size: 32px; font-weight: 900; color: #00d4ff; }
+  .attr-upgrade-card .attr-max { font-size: 14px; color: #555; }
+  .upgrade-btn { background: linear-gradient(135deg, #7b2fff, #00d4ff); border: none; color: #fff; padding: 10px 24px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 14px; margin-top: 12px; transition: all 0.2s; width: 100%; }
+  .upgrade-btn:hover { opacity: 0.9; transform: scale(1.02); }
+  .upgrade-btn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+  .skill-points-display { background: rgba(255,107,53,0.2); border: 1px solid #ff6b35; border-radius: 10px; padding: 12px 20px; margin-bottom: 20px; text-align: center; font-size: 16px; font-weight: 700; color: #ff6b35; }
+  
+  /* SPONSORS */
+  .sponsor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .sponsor-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; text-align: center; }
+  .sponsor-card.active-sponsor { border-color: #ffd700; background: rgba(255,215,0,0.05); }
+  .sponsor-card .s-logo { font-size: 36px; margin-bottom: 10px; }
+  .sponsor-card .s-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .sponsor-card .s-deal { font-size: 13px; color: #ffd700; margin-bottom: 6px; }
+  .sponsor-card .s-req { font-size: 12px; color: #888; }
+  
+  /* RANKING */
+  .ranking-table { width: 100%; border-collapse: collapse; }
+  .ranking-table th { text-align: left; padding: 12px 16px; color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .ranking-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+  .ranking-table tr.player-row { background: rgba(123,47,255,0.15); }
+  .ranking-table tr:hover { background: rgba(255,255,255,0.03); }
+  .rank-num { font-weight: 700; color: #ffd700; }
+  .rank-num.top3 { color: #ffd700; font-size: 16px; }
+  
+  /* GAME SCREEN */
+  #gameScreen { background: #0a0a1a; flex-direction: column; padding: 0; }
+  .game-hud { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.08); width: 100%; z-index: 10; }
+  .hud-player { display: flex; flex-direction: column; align-items: flex-start; }
+  .hud-player.right { align-items: flex-end; }
+  .hud-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .hud-score { font-size: 28px; font-weight: 900; color: #00d4ff; }
+  .hud-sets { font-size: 13px; color: #888; }
+  .hud-center { text-align: center; }
+  .hud-set-score { font-size: 20px; font-weight: 700; color: #ffd700; }
+  .hud-info { font-size: 12px; color: #888; }
+  .energy-bar-container { width: 120px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 4px; overflow: hidden; }
+  .energy-bar-fill { height: 100%; background: linear-gradient(90deg, #ff3366, #ff6b35); border-radius: 4px; transition: width 0.3s; }
+  #gameCanvas { flex: 1; display: block; cursor: none; }
+  .game-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 20; }
+  .game-overlay h2 { font-size: 48px; font-weight: 900; margin-bottom: 20px; }
+  .game-overlay p { font-size: 18px; color: #888; margin-bottom: 30px; }
+  .overlay-hidden { display: none !important; }
+  
+  /* NOTIFICATIONS */
+  .notification { position: fixed; top: 20px; right: 20px; background: rgba(123,47,255,0.9); border: 1px solid #7b2fff; border-radius: 12px; padding: 16px 24px; font-size: 15px; font-weight: 600; z-index: 1000; animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards; max-width: 300px; }
+  .notification.success { background: rgba(0,200,100,0.9); border-color: #00c864; }
+  .notification.warning { background: rgba(255,107,53,0.9); border-color: #ff6b35; }
+  .notification.gold { background: rgba(255,215,0,0.9); border-color: #ffd700; color: #000; }
+  @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+  @keyframes fadeOut { from{opacity:1} to{opacity:0;pointer-events:none} }
+  
+  /* MATCH RESULT */
+  .match-result { background: rgba(10,10,26,0.98); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; text-align: center; max-width: 500px; width: 90%; }
+  .match-result h2 { font-size: 36px; font-weight: 900; margin-bottom: 10px; }
+  .match-result.win h2 { color: #00d4ff; }
+  .match-result.lose h2 { color: #ff3366; }
+  .match-result .score-display { font-size: 24px; color: #ffd700; margin: 15px 0; }
+  .match-result .rewards { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
+  .reward-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px 20px; text-align: center; }
+  .reward-item .r-val { font-size: 22px; font-weight: 700; color: #ffd700; }
+  .reward-item .r-lbl { font-size: 12px; color: #888; }
+  
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+  ::-webkit-scrollbar-thumb { background: rgba(123,47,255,0.4); border-radius: 3px; }
+  
+  /* SEASON BANNER */
+  .season-banner { background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(123,47,255,0.1)); border: 1px solid rgba(255,215,0,0.3); border-radius: 16px; padding: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+  .season-info h3 { font-size: 20px; font-weight: 700; color: #ffd700; }
+  .season-info p { font-size: 14px; color: #888; margin-top: 4px; }
+  .season-progress { text-align: right; }
+  .season-progress .prog-val { font-size: 28px; font-weight: 900; color: #00d4ff; }
+  .season-progress .prog-lbl { font-size: 12px; color: #888; }
+  
+  /* CALENDAR */
+  .calendar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .cal-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; }
+  .cal-item.completed { border-color: rgba(0,200,100,0.3); background: rgba(0,200,100,0.05); }
+  .cal-item.current { border-color: rgba(0,212,255,0.5); background: rgba(0,212,255,0.05); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,0.3)} 50%{box-shadow:0 0 0 8px rgba(0,212,255,0)} }
+  .cal-week { font-size: 11px; color: #555; margin-bottom: 4px; }
+  .cal-name { font-size: 14px; font-weight: 600; }
+  .cal-result { font-size: 12px; margin-top: 4px; }
+  .cal-result.win { color: #00c864; }
+  .cal-result.lose { color: #ff3366; }
+  
+  /* LEVEL UP ANIMATION */
+  .level-up-anim { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 48px; font-weight: 900; color: #ffd700; text-shadow: 0 0 30px rgba(255,215,0,0.8); z-index: 2000; animation: levelUp 2s ease forwards; pointer-events: none; }
+  @keyframes levelUp { 0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)} 30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)} 70%{opacity:1;transform:translate(-50%,-60%) scale(1)} 100%{opacity:0;transform:translate(-50%,-80%) scale(0.8)} }
+  
+  /* HIT EFFECT */
+  .hit-effect { position: absolute; border-radius: 50%; pointer-events: none; animation: hitPulse 0.4s ease forwards; }
+  @keyframes hitPulse { 0%{transform:scale(0);opacity:1} 100%{transform:scale(3);opacity:0} }
+</style>
 </head>
 <body>
-    <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+
+<!-- MENU SCREEN -->
+<div id="menuScreen" class="screen active">
+  <div class="tennis-ball-deco"></div>
+  <div class="menu-title">TENNIS CAREER</div>
+  <div class="menu-subtitle">Modo Carreira Profissional</div>
+  <button class="menu-btn" onclick="showScreen('createScreen')">🎾 Nova Carreira</button>
+  <button class="menu-btn secondary" id="continueBtn" onclick="loadCareer()" style="display:none">▶ Continuar Carreira</button>
+  <button class="menu-btn secondary" onclick="showScreen('careerScreen'); showCareerSection('ranking')">🏆 Ranking Mundial</button>
+  <button class="menu-btn danger" onclick="resetCareer()" id="resetBtn" style="display:none">🗑 Reiniciar Carreira</button>
+</div>
+
+<!-- CREATE PLAYER SCREEN -->
+<div id="createScreen" class="screen">
+  <div class="create-form">
+    <h2>🎾 Criar Jogador</h2>
+    <div class="form-group">
+      <label>Nome do Jogador</label>
+      <input type="text" id="playerNameInput" placeholder="Seu nome..." maxlength="20" value="Rafael">
+    </div>
+    <div class="form-group">
+      <label>Estilo de Jogo</label>
+      <select id="playStyleSelect">
+        <option value="baseline">Baselineiro (Fundo de Quadra)</option>
+        <option value="allcourt">All-Court (Versátil)</option>
+        <option value="serve">Sacador (Saque e Voleio)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Distribuir Atributos Iniciais</label>
+      <div class="points-left">Pontos disponíveis: <span id="pointsLeft">10</span></div>
+      <div class="attr-points">
+        <div class="attr-item">
+          <label>⚡ Velocidade</label>
+          <div class="attr-val" id="attrSpeed">5</div>
+          <div class="attr-btns">
+            <button class="attr-btn" onclick="changeAttr('speed',-1)">-</button>
+            <button class="attr-btn" onclick="changeAttr('speed',1)">+</button>
+          </div>
+        </div>
+        <div class="attr-item">
+          <label>💪 Força Saque</label>
+          <div class="attr-val" id="attrServe">5</div>
+          <div class="attr-btns">
+            <button class="attr-btn" onclick="changeAttr('serve',-1)">-</button>
+            <button class="attr-btn" onclick="changeAttr('serve',1)">+</button>
+          </div>
+        </div>
+        <div class="attr-item">
+          <label>🎯 Precisão</label>
+          <div class="attr-val" id="attrAccuracy">5</div>
+          <div class="attr-btns">
+            <button class="attr-btn" onclick="changeAttr('accuracy',-1)">-</button>
+            <button class="attr-btn" onclick="changeAttr('accuracy',1)">+</button>
+          </div>
+        </div>
+        <div class="attr-item">
+          <label>🌀 Spin</label>
+          <div class="attr-val" id="attrSpin">5</div>
+          <div class="attr-btns">
+            <button class="attr-btn" onclick="changeAttr('spin',-1)">-</button>
+            <button class="attr-btn" onclick="changeAttr('spin',1)">+</button>
+          </div>
+        </div>
+        <div class="attr-item" style="grid-column:span 2">
+          <label>⚡ Reflexo</label>
+          <div class="attr-val" id="attrReflex">5</div>
+          <div class="attr-btns">
+            <button class="attr-btn" onclick="changeAttr('reflex',-1)">-</button>
+            <button class="attr-btn" onclick="changeAttr('reflex',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="menu-btn" style="width:100%;margin-top:10px" onclick="createPlayer()">Iniciar Carreira 🚀</button>
+    <button class="menu-btn secondary" style="width:100%;margin-top:8px" onclick="showScreen('menuScreen')">Voltar</button>
+  </div>
+</div>
+
+<!-- CAREER SCREEN -->
+<div id="careerScreen" class="screen" style="flex-direction:row;align-items:stretch;justify-content:flex-start">
+  <div class="career-sidebar">
+    <div class="player-card" id="sidebarPlayerCard">
+      <div class="player-name" id="sidebarName">-</div>
+      <div class="player-rank" id="sidebarRank">Ranking: #500</div>
+      <div class="player-money" id="sidebarMoney">💰 $0</div>
+      <div class="stat-bar">
+        <div class="stat-bar-label"><span>Nível <span id="sidebarLevel">1</span></span><span id="sidebarXPText">0/100 XP</span></div>
+        <div class="xp-bar"><div class="xp-bar-track"><div class="xp-bar-fill" id="sidebarXPBar" style="width:0%"></div></div></div>
+      </div>
+    </div>
+    <button class="sidebar-nav-btn active" onclick="showCareerSection('overview')">🏠 Visão Geral</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('calendar')">📅 Calendário</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('tournaments')">🏆 Torneios</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('attributes')">⬆ Atributos</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('shop')">🛒 Loja</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('sponsors')">💼 Patrocinadores</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('ranking')">🌍 Ranking</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('stats')">📊 Estatísticas</button>
+    <div style="flex:1"></div>
+    <button class="sidebar-nav-btn" onclick="showScreen('menuScreen')" style="color:#ff6b35;border-color:rgba(255,107,53,0.3)">← Menu</button>
+  </div>
+  <div class="career-main">
+    <!-- OVERVIEW -->
+    <div class="career-section active" id="section-overview">
+      <div class="season-banner">
+        <div class="season-info">
+          <h3 id="seasonTitle">Temporada 1</h3>
+          <p id="seasonDesc">Início da sua jornada profissional</p>
+        </div>
+        <div class="season-progress">
+          <div class="prog-val" id="seasonWins">0</div>
+          <div class="prog-lbl">Vitórias na Temporada</div>
+        </div>
+      </div>
+      <div class="stats-grid" id="overviewStats"></div>
+      <div style="margin-top:20px">
+        <h3 style="color:#00d4ff;margin-bottom:12px">Próximo Torneio</h3>
+        <div id="nextTournamentCard"></div>
+      </div>
+      <div style="margin-top:20px" id="sponsorBanner"></div>
+    </div>
+    <!-- CALENDAR -->
+    <div class="career-section" id="section-calendar">
+      <div class="section-title">📅 Calendário da Temporada</div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+    <!-- TOURNAMENTS -->
+    <div class="career-section" id="section-tournaments">
+      <div class="section-title">🏆 Torneios Disponíveis</div>
+      <div class="tournament-grid" id="tournamentGrid"></div>
+    </div>
+    <!-- ATTRIBUTES -->
+    <div class="career-section" id="section-attributes">
+      <div class="section-title">⬆ Evolução de Atributos</div>
+      <div class="skill-points-display" id="skillPointsDisplay">Pontos de Habilidade: 0</div>
+      <div class="attr-upgrade-grid" id="attrUpgradeGrid"></div>
+    </div>
+    <!-- SHOP -->
+    <div class="career-section" id="section-shop">
+      <div class="section-title">🛒 Loja de Equipamentos</div>
+      <div class="shop-grid" id="shopGrid"></div>
+    </div>
+    <!-- SPONSORS -->
+    <div class="career-section" id="section-sponsors">
+      <div class="section-title">💼 Patrocinadores</div>
+      <div class="sponsor-grid" id="sponsorGrid"></div>
+    </div>
+    <!-- RANKING -->
+    <div class="career-section" id="section-ranking">
+      <div class="section-title">🌍 Ranking Mundial ATP</div>
+      <table class="ranking-table" id="rankingTable">
+        <thead><tr><th>#</th><th>Jogador</th><th>País</th><th>Pontos</th></tr></thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+    <!-- STATS -->
+    <div class="career-section" id="section-stats">
+      <div class="section-title">📊 Estatísticas da Carreira</div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen">
+  <div class="game-hud">
+    <div class="hud-player">
+      <div class="hud-name" id="hudPlayerName">Jogador</div>
+      <div class="hud-score" id="hudPlayerScore">0</div>
+      <div class="hud-sets" id="hudPlayerSets">Sets: 0</div>
+      <div class="energy-bar-container"><div class="energy-bar-fill" id="playerEnergyBar" style="width:100%"></div></div>
+    </div>
+    <div class="hud-center">
+      <div class="hud-set-score" id="hudSetScore">0 - 0</div>
+      <div class="hud-info" id="hudTournamentName">Torneio</div>
+      <div class="hud-info" id="hudSurface">Quadra</div>
+      <button onclick="togglePause()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;margin-top:4px">⏸ Pause</button>
+    </div>
+    <div class="hud-player right">
+      <div class="hud-name" id="hudAIName">Oponente</div>
+      <div class="hud-score" id="hudAIScore">0</div>
+      <div class="hud-sets" id="hudAISets">Sets: 0</div>
+      <div class="energy-bar-container"><div class="energy-bar-fill" id="aiEnergyBar" style="width:100%;background:linear-gradient(90deg,#ff3366,#7b2fff)"></div></div>
+    </div>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div class="game-overlay overlay-hidden" id="pauseOverlay">
+    <h2>⏸ PAUSADO</h2>
+    <p>Pressione ESC ou clique para continuar</p>
+    <button class="menu-btn" onclick="togglePause()">Continuar</button>
+    <button class="menu-btn secondary" onclick="quitMatch()">Abandonar Partida</button>
+  </div>
+  <div class="game-overlay overlay-hidden" id="matchResultOverlay">
+    <div class="match-result" id="matchResultCard">
+      <h2 id="matchResultTitle">Vitória!</h2>
+      <div class="score-display" id="matchResultScore"></div>
+      <div class="rewards" id="matchRewards"></div>
+      <button class="menu-btn" onclick="finishMatch()">Continuar Carreira</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GAME STATE
+// ============================================================
+let G = {}; // Global game state
+
+const SCORE_LABELS = ['0','15','30','40','AD'];
+const SURFACES = ['Saibro','Grama','Quadra Dura','Indoor'];
+const SURFACE_COLORS = { 'Saibro':'#c2440a', 'Grama':'#2d7a2d', 'Quadra Dura':'#1a4a8a', 'Indoor':'#3a3a5a' };
+
+// ============================================================
+// AUDIO ENGINE
+// ============================================================
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function getAudio() { if(!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
+
+function playSound(type) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    const t = ctx.currentTime;
+    if(type==='hit') {
+      osc.frequency.setValueAtTime(440,t); osc.frequency.exponentialRampToValueAtTime(220,t+0.1);
+      gain.gain.setValueAtTime(0.3,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+      osc.start(t); osc.stop(t+0.15);
+    } else if(type==='point') {
+      osc.frequency.setValueAtTime(523,t); osc.frequency.setValueAtTime(659,t+0.1); osc.frequency.setValueAtTime(784,t+0.2);
+      gain.gain.setValueAtTime(0.3,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+      osc.start(t); osc.stop(t+0.4);
+    } else if(type==='win') {
+      [523,659,784,1047].forEach((f,i)=>{ const o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=f; g.gain.setValueAtTime(0.2,t+i*0.15); g.gain.exponentialRampToValueAtTime(0.001,t+i*0.15+0.3); o.start(t+i*0.15); o.stop(t+i*0.15+0.3); });
+    } else if(type==='lose') {
+      osc.frequency.setValueAtTime(300,t); osc.frequency.exponentialRampToValueAtTime(150,t+0.5);
+      gain.gain.setValueAtTime(0.2,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      osc.start(t); osc.stop(t+0.5);
+    } else if(type==='serve') {
+      osc.frequency.setValueAtTime(880,t); osc.frequency.exponentialRampToValueAtTime(440,t+0.08);
+      gain.gain.setValueAtTime(0.4,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+      osc.start(t); osc.stop(t+0.1);
+    } else if(type==='bounce') {
+      osc.frequency.setValueAtTime(200,t); osc.frequency.exponentialRampToValueAtTime(100,t+0.05);
+      gain.gain.setValueAtTime(0.15,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+      osc.start(t); osc.stop(t+0.08);
+    }
+  } catch(e){}
+}
+
+// ============================================================
+// WORLD DATA
+// ============================================================
+const WORLD_PLAYERS = [
+  {name:'Carlos Alcaraz',country:'🇪🇸',pts:9500},{name:'Jannik Sinner',country:'🇮🇹',pts:9200},
+  {name:'Novak Djokovic',country:'🇷🇸',pts:8800},{name:'Daniil Medvedev',country:'🇷🇺',pts:7500},
+  {name:'Alexander Zverev',country:'🇩🇪',pts:6800},{name:'Andrey Rublev',country:'🇷🇺',pts:5200},
+  {name:'Casper Ruud',country:'🇳🇴',pts:4800},{name:'Holger Rune',country:'🇩🇰',pts:4200},
+  {name:'Stefanos Tsitsipas',country:'🇬🇷',pts:3900},{name:'Taylor Fritz',country:'🇺🇸',pts:3600},
+  {name:'Ben Shelton',country:'🇺🇸',pts:3200},{name:'Tommy Paul',country:'🇺🇸',pts:2900},
+  {name:'Grigor Dimitrov',country:'🇧🇬',pts:2600},{name:'Ugo Humbert',country:'🇫🇷',pts:2300},
+  {name:'Sebastian Korda',country:'🇺🇸',pts:2100},{name:'Frances Tiafoe',country:'🇺🇸',pts:1900},
+  {name:'Lorenzo Musetti',country:'🇮🇹',pts:1700},{name:'Alejandro Davidovich',country:'🇪🇸',pts:1500},
+  {name:'Nicolas Jarry',country:'🇨🇱',pts:1300},{name:'Tomas Machac',country:'🇨🇿',pts:1100},
+  {name:'Matteo Arnaldi',country:'🇮🇹',pts:900},{name:'Jiri Lehecka',country:'🇨🇿',pts:750},
+  {name:'Tallon Griekspoor',country:'🇳🇱',pts:600},{name:'Botic van de Zandschulp',country:'🇳🇱',pts:500},
+  {name:'Marton Fucsovics',country:'🇭🇺',pts:400},{name:'Yannick Hanfmann',country:'🇩🇪',pts:320},
+  {name:'Luca Nardi',country:'🇮🇹',pts:260},{name:'Thiago Monteiro',country:'🇧🇷',pts:200},
+  {name:'Pedro Martinez',country:'🇪🇸',pts:160},{name:'Quentin Halys',country:'🇫🇷',pts:120},
+];
+
+const TOURNAMENTS_DATA = [
+  {id:'challenger1',name:'Challenger São Paulo',tier:'challenger',surface:'Saibro',prize:15000,pts:80,rankReq:500,rounds:4},
+  {id:'challenger2',name:'Challenger Buenos Aires',tier:'challenger',surface:'Saibro',prize:12000,pts:80,rankReq:500,rounds:4},
+  {id:'atp250_1',name:'ATP 250 Córdoba',tier:'atp250',surface:'Saibro',prize:50000,pts:250,rankReq:200,rounds:5},
+  {id:'atp250_2',name:'ATP 250 Marrakech',tier:'atp250',surface:'Saibro',prize:55000,pts:250,rankReq:200,rounds:5},
+  {id:'atp250_3',name:'ATP 250 Eastbourne',tier:'atp250',surface:'Grama',prize:60000,pts:250,rankReq:150,rounds:5},
+  {id:'atp500_1',name:'ATP 500 Hamburgo',tier:'atp500',surface:'Saibro',prize:120000,pts:500,rankReq:100,rounds:5},
+  {id:'atp500_2',name:'ATP 500 Basileia',tier:'atp500',surface:'Indoor',prize:130000,pts:500,rankReq:80,rounds:5},
+  {id:'masters1',name:'Masters 1000 Monte Carlo',tier:'masters',surface:'Saibro',prize:300000,pts:1000,rankReq:50,rounds:6},
+  {id:'masters2',name:'Masters 1000 Madrid',tier:'masters',surface:'Saibro',prize:350000,pts:1000,rankReq:40,rounds:6},
+  {id:'masters3',name:'Masters 1000 Cincinnati',tier:'masters',surface:'Quadra Dura',prize:380000,pts:1000,rankReq:30,rounds:6},
+  {id:'gs1',name:'Roland Garros',tier:'grand-slam',surface:'Saibro',prize:1500000,pts:2000,rankReq:20,rounds:7},
+  {id:'gs2',name:'Wimbledon',tier:'grand-slam',surface:'Grama',prize:1800000,pts:2000,rankReq:15,rounds:7},
+  {id:'gs3',name:'US Open',tier:'grand-slam',surface:'Quadra Dura',prize:2000000,pts:2000,rankReq:10,rounds:7},
+  {id:'gs4',name:'Australian Open',tier:'grand-slam',surface:'Quadra Dura',prize:1700000,pts:2000,rankReq:10,rounds:7},
+];
+
+const SHOP_ITEMS = [
+  {id:'racket1',name:'Raquete Pro',icon:'🎾',desc:'Raquete de carbono leve',price:5000,bonus:{accuracy:2},category:'racket'},
+  {id:'racket2',name:'Raquete Elite',icon:'🏆',desc:'Raquete de grafite premium',price:15000,bonus:{accuracy:3,serve:2},category:'racket'},
+  {id:'racket3',name:'Raquete Master',icon:'⚡',desc:'Raquete de titânio profissional',price:40000,bonus:{accuracy:4,serve:4,spin:2},category:'racket'},
+  {id:'shoes1',name:'Tênis Speed',icon:'👟',desc:'Tênis leve para velocidade',price:3000,bonus:{speed:2},category:'shoes'},
+  {id:'shoes2',name:'Tênis Pro Court',icon:'🥿',desc:'Tênis profissional multi-superfície',price:10000,bonus:{speed:3,reflex:2},category:'shoes'},
+  {id:'outfit1',name:'Roupa Básica',icon:'👕',desc:'Conjunto esportivo básico',price:1000,bonus:{},category:'outfit'},
+  {id:'outfit2',name:'Roupa Pro',icon:'🎽',desc:'Conjunto profissional respirável',price:8000,bonus:{reflex:1},category:'outfit'},
+  {id:'training1',name:'Treino de Saque',icon:'💪',desc:'Programa de treino intensivo',price:20000,bonus:{serve:5},category:'training'},
+  {id:'training2',name:'Treino de Velocidade',icon:'⚡',desc:'Treino de agilidade avançado',price:20000,bonus:{speed:5},category:'training'},
+  {id:'training3',name:'Treino Mental',icon:'🧠',desc:'Coaching mental profissional',price:25000,bonus:{accuracy:3,reflex:3},category:'training'},
+];
+
+const SPONSORS_DATA = [
+  {id:'sp1',name:'SportMax',logo:'🏅',deal:'$2.000/torneio',bonus:2000,rankReq:200,desc:'Patrocinador iniciante'},
+  {id:'sp2',name:'ProGear',logo:'⚡',deal:'$5.000/torneio',bonus:5000,rankReq:100,desc:'Equipamentos esportivos'},
+  {id:'sp3',name:'EliteWear',logo:'👑',deal:'$10.000/torneio',bonus:10000,rankReq:50,desc:'Marca de roupas premium'},
+  {id:'sp4',name:'GlobalSport',logo:'🌍',deal:'$25.000/torneio',bonus:25000,rankReq:20,desc:'Patrocinador internacional'},
+  {id:'sp5',name:'TennisPro',logo:'🎾',deal:'$50.000/torneio',bonus:50000,rankReq:10,desc:'Marca oficial de tênis'},
+  {id:'sp6',name:'WorldChamp',logo:'🏆',deal:'$100.000/torneio',bonus:100000,rankReq:1,desc:'Patrocinador campeão mundial'},
+];
+
+// ============================================================
+// INIT
+// ============================================================
+function initGame() {
+  if(localStorage.getItem('tennisCareer')) {
+    document.getElementById('continueBtn').style.display='block';
+    document.getElementById('resetBtn').style.display='block';
+  }
+}
+
+function defaultState(name, style, attrs) {
+  return {
+    name, style,
+    money: 5000,
+    level: 1,
+    xp: 0,
+    xpNext: 100,
+    skillPoints: 0,
+    rankPts: 0,
+    worldRank: 500,
+    season: 1,
+    week: 1,
+    seasonWins: 0,
+    totalWins: 0,
+    totalLosses: 0,
+    totalMatches: 0,
+    grandSlams: 0,
+    titles: 0,
+    attrs: { speed: attrs.speed, serve: attrs.serve, accuracy: attrs.accuracy, spin: attrs.spin, reflex: attrs.reflex },
+    equipment: {},
+    ownedItems: [],
+    activeSponsors: [],
+    calendar: [],
+    completedTournaments: [],
+    stats: { aces: 0, winners: 0, doubleFaults: 0, pointsWon: 0, pointsLost: 0 }
+  };
+}
+
+// CREATE PLAYER
+let createAttrs = { speed:5, serve:5, accuracy:5, spin:5, reflex:5 };
+let createPoints = 10;
+
+function changeAttr(attr, delta) {
+  const newVal = createAttrs[attr] + delta;
+  if(newVal < 1 || newVal > 10) return;
+  if(delta > 0 && createPoints <= 0) return;
+  createAttrs[attr] = newVal;
+  createPoints -= delta;
+  document.getElementById('attr'+attr.charAt(0).toUpperCase()+attr.slice(1)).textContent = newVal;
+  document.getElementById('pointsLeft').textContent = createPoints;
+}
+
+function createPlayer() {
+  const name = document.getElementById('playerNameInput').value.trim() || 'Jogador';
+  const style = document.getElementById('playStyleSelect').value;
+  G = defaultState(name, style, createAttrs);
+  generateCalendar();
+  saveCareer();
+  showScreen('careerScreen');
+  updateCareerUI();
+  showNotification('🎾 Bem-vindo ao circuito profissional, ' + name + '!', 'success');
+}
+
+function generateCalendar() {
+  G.calendar = [];
+  const tournamentPool = [...TOURNAMENTS_DATA];
+  const weeks = 26;
+  for(let w=1; w<=weeks; w++) {
+    const available = tournamentPool.filter(t => {
+      const rankOk = G.worldRank <= t.rankReq + 300;
+      return rankOk;
+    });
+    const t = available[Math.floor(Math.random()*available.length)] || tournamentPool[0];
+    G.calendar.push({ week: w, tournament: t.id, name: t.name, tier: t.tier, surface: t.surface, status: 'upcoming', result: null });
+  }
+}
+
+// ============================================================
+// CAREER UI
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='careerScreen') updateCareerUI();
+}
+
+function showCareerSection(sec) {
+  document.querySelectorAll('.career-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+sec).classList.add('active');
+  document.querySelectorAll('.sidebar-nav-btn').forEach(b=>b.classList.remove('active'));
+  event && event.target && event.target.classList.add('active');
+  if(sec==='tournaments') renderTournaments();
+  if(sec==='shop') renderShop();
+  if(sec==='sponsors') renderSponsors();
+  if(sec==='ranking') renderRanking();
+  if(sec==='stats') renderStats();
+  if(sec==='attributes') renderAttributes();
+  if(sec==='calendar') renderCalendar();
+  if(sec==='overview') renderOverview();
+}
+
+function updateCareerUI() {
+  if(!G.name) return;
+  document.getElementById('sidebarName').textContent = G.name;
+  document.getElementById('sidebarRank').textContent = 'Ranking: #' + G.worldRank;
+  document.getElementById('sidebarMoney').textContent = '💰 $' + G.money.toLocaleString();
+  document.getElementById('sidebarLevel').textContent = G.level;
+  const xpPct = Math.min(100, (G.xp / G.xpNext) * 100);
+  document.getElementById('sidebarXPBar').style.width = xpPct + '%';
+  document.getElementById('sidebarXPText').textContent = G.xp + '/' + G.xpNext + ' XP';
+  renderOverview();
+}
+
+function renderOverview() {
+  if(!G.name) return;
+  document.getElementById('seasonTitle').textContent = 'Temporada ' + G.season;
+  document.getElementById('seasonDesc').textContent = 'Semana ' + G.week + ' de 26';
+  document.getElementById('seasonWins').textContent = G.seasonWins;
+  
+  const totalAttrs = Object.values(G.attrs).reduce((a,b)=>a+b,0);
+  document.getElementById('overviewStats').innerHTML = `
+    <div class="stat-card"><div class="val">#${G.worldRank}</div><div class="lbl">Ranking Mundial</div></div>
+    <div class="stat-card"><div class="val">${G.level}</div><div class="lbl">Nível</div></div>
+    <div class="stat-card"><div class="val">$${G.money.toLocaleString()}</div><div class="lbl">Dinheiro</div></div>
+    <div class="stat-card"><div class="val">${G.titles}</div><div class="lbl">Títulos</div></div>
+    <div class="stat-card"><div class="val">${G.totalWins}</div><div class="lbl">Vitórias</div></div>
+    <div class="stat-card"><div class="val">${totalAttrs}</div><div class="lbl">Total Atributos</div></div>
+  `;
+  
+  // Next tournament
+  const nextT = G.calendar.find(c=>c.status==='upcoming');
+  if(nextT) {
+    const tData = TOURNAMENTS_DATA.find(t=>t.id===nextT.tournament);
+    document.getElementById('nextTournamentCard').innerHTML = `
+      <div class="tournament-card" onclick="startTournament('${nextT.tournament}')" style="max-width:300px">
+        <div class="t-tier ${nextT.tier}">${nextT.tier.toUpperCase()}</div>
+        <div class="t-name">${nextT.name}</div>
+        <div class="t-prize">💰 $${tData.prize.toLocaleString()}</div>
+        <div class="t-surface">🎾 ${nextT.surface} • Semana ${nextT.week}</div>
+        <div style="margin-top:10px;font-size:13px;color:#00d4ff">Clique para jogar →</div>
+      </div>
+    `;
+  } else {
+    document.getElementById('nextTournamentCard').innerHTML = '<p style="color:#888">Temporada concluída! Inicie uma nova temporada.</p><button class="menu-btn" onclick="newSeason()" style="margin-top:10px">Nova Temporada</button>';
+  }
+  
+  // Sponsor banner
+  const activeSp = G.activeSponsors.map(id=>SPONSORS_DATA.find(s=>s.id===id)).filter(Boolean);
+  if(activeSp.length > 0) {
+    document.getElementById('sponsorBanner').innerHTML = `
+      <div style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:12px;padding:16px">
+        <div style="font-size:13px;color:#888;margin-bottom:8px">PATROCINADORES ATIVOS</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          ${activeSp.map(s=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:24px">${s.logo}</span><div><div style="font-weight:700">${s.name}</div><div style="font-size:12px;color:#ffd700">${s.deal}</div></div></div>`).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    document.getElementById('sponsorBanner').innerHTML = '';
+  }
+}
+
+function renderCalendar() {
+  if(!G.calendar) return;
+  document.getElementById('calendarGrid').innerHTML = G.calendar.map(c=>`
+    <div class="cal-item ${c.status==='completed'?'completed':''} ${c.status==='upcoming'&&G.calendar.indexOf(c)===G.calendar.findIndex(x=>x.status==='upcoming')?'current':''}">
+      <div class="cal-week">Semana ${c.week}</div>
+      <div class="cal-name">${c.name}</div>
+      <div style="font-size:11px;color:#666">${c.surface}</div>
+      ${c.result?`<div class="cal-result ${c.result.win?'win':'lose'}">${c.result.win?'✓ Vitória':'✗ Derrota'} ${c.result.round?'('+c.result.round+'ª rodada)':''}</div>`:''}
+    </div>
+  `).join('');
+}
+
+function renderTournaments() {
+  document.getElementById('tournamentGrid').innerHTML = TOURNAMENTS_DATA.map(t=>{
+    const locked = G.worldRank > t.rankReq;
+    return `
+      <div class="tournament-card ${locked?'locked':''}" onclick="${locked?'showNotification(\'Ranking insuficiente! Melhore seu ranking para desbloquear.\',\'warning\')':'startTournament(\''+t.id+'\')'}">
+        <div class="t-tier ${t.tier}">${t.tier.toUpperCase()}</div>
+        <div class="t-name">${t.name}</div>
+        <div class="t-prize">💰 $${t.prize.toLocaleString()}</div>
+        <div class="t-surface">🎾 ${t.surface}</div>
+        <div style="font-size:11px;color:#555;margin-top:4px">Req: Ranking #${t.rankReq}</div>
+        ${locked?'<div class="t-lock-icon">🔒</div>':''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAttributes() {
+  document.getElementById('skillPointsDisplay').textContent = 'Pontos de Habilidade: ' + G.skillPoints;
+  const attrInfo = [
+    {key:'speed',name:'⚡ Velocidade',desc:'Aumenta a velocidade de movimento na quadra'},
+    {key:'serve',name:'💪 Força do Saque',desc:'Aumenta a velocidade e poder do saque'},
+    {key:'accuracy',name:'🎯 Precisão',desc:'Melhora a precisão dos golpes'},
+    {key:'spin',name:'🌀 Controle de Spin',desc:'Aumenta o efeito e controle da bola'},
+    {key:'reflex',name:'⚡ Reflexo',desc:'Melhora o tempo de reação'},
+  ];
+  document.getElementById('attrUpgradeGrid').innerHTML = attrInfo.map(a=>`
+    <div class="attr-upgrade-card">
+      <h3>${a.name}</h3>
+      <div class="attr-desc">${a.desc}</div>
+      <div class="attr-current">${G.attrs[a.key]}<span class="attr-max">/20</span></div>
+      <div style="margin-top:8px">
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${(G.attrs[a.key]/20)*100}%"></div></div>
+      </div>
+      <button class="upgrade-btn" onclick="upgradeAttr('${a.key}')" ${G.skillPoints<=0||G.attrs[a.key]>=20?'disabled':''}>
+        ${G.attrs[a.key]>=20?'MÁXIMO':'Melhorar (+1) — 1 ponto'}
+      </button>
+    </div>
+  `).join('');
+}
+
+function upgradeAttr(attr) {
+  if(G.skillPoints <= 0 || G.attrs[attr] >= 20) return;
+  G.attrs[attr]++;
+  G.skillPoints--;
+  saveCareer();
+  renderAttributes();
+  updateCareerUI();
+  showNotification(`${attr} aumentado para ${G.attrs[attr]}!`, 'success');
+}
+
+function renderShop() {
+  document.getElementById('shopGrid').innerHTML = SHOP_ITEMS.map(item=>{
+    const owned = G.ownedItems.includes(item.id);
+    const bonusText = Object.entries(item.bonus).map(([k,v])=>`+${v} ${k}`).join(', ');
+    return `
+      <div class="shop-item">
+        <div class="item-icon">${item.icon}</div>
+        <div class="item-name">${item.name}</div>
+        <div class="item-desc">${item.desc}</div>
+        ${bonusText?`<div class="item-bonus">${bonusText}</div>`:''}
+        <div class="item-price">💰 $${item.price.toLocaleString()}</div>
+        ${owned?'<div class="owned-badge">✓ Possuído</div>':`<button class="buy-btn" onclick="buyItem('${item.id}')" ${G.money<item.price?'disabled':''}>Comprar</button>`}
+      </div>
+    `;
+  }).join('');
+}
+
+function buyItem(id) {
+  const item = SHOP_ITEMS.find(i=>i.id===id);
+  if(!item || G.money < item.price || G.ownedItems.includes(id)) return;
+  G.money -= item.price;
+  G.ownedItems.push(id);
+  Object.entries(item.bonus).forEach(([k,v])=>{ G.attrs[k] = Math.min(20, G.attrs[k]+v); });
+  saveCareer();
+  renderShop();
+  updateCareerUI();
+  showNotification(`${item.name} comprado! ${Object.entries(item.bonus).map(([k,v])=>`+${v} ${k}`).join(', ')}`, 'gold');
+}
+
+function renderSponsors() {
+  document.getElementById('sponsorGrid').innerHTML = SPONSORS_DATA.map(s=>{
+    const active = G.activeSponsors.includes(s.id);
+    const unlocked = G.worldRank <= s.rankReq;
+    return `
+      <div class="sponsor-card ${active?'active-sponsor':''}">
+        <div class="s-logo">${s.logo}</div>
+        <div class="s-name">${s.name}</div>
+        <div class="s-deal">${s.deal}</div>
+        <div class="s-req">Req: Ranking #${s.rankReq}</div>
+        <div style="margin-top:10px">
+          ${active?'<div class="owned-badge">✓ Ativo</div>':unlocked?`<button class="buy-btn" onclick="activateSponsor('${s.id}')">Assinar</button>`:'<div style="color:#555;font-size:12px">🔒 Bloqueado</div>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function activateSponsor(id) {
+  if(G.activeSponsors.includes(id)) return;
+  G.activeSponsors.push(id);
+  saveCareer();
+  renderSponsors();
+  showNotification('Patrocinador ativado! Você receberá bônus por torneio.', 'gold');
+}
+
+function renderRanking() {
+  const allPlayers = [...WORLD_PLAYERS];
+  const playerEntry = { name: G.name+'  ← VOCÊ', country:'🇧🇷', pts: G.rankPts };
+  allPlayers.push(playerEntry);
+  allPlayers.sort((a,b)=>b.pts-a.pts);
+  const playerIdx = allPlayers.findIndex(p=>p.name===playerEntry.name);
+  
+  document.getElementById('rankingBody').innerHTML = allPlayers.map((p,i)=>`
+    <tr class="${p.name===playerEntry.name?'player-row':''}">
+      <td class="rank-num ${i<3?'top3':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</td>
+      <td>${p.name}</td>
+      <td>${p.country}</td>
+      <td>${p.pts.toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+function renderStats() {
+  const winRate = G.totalMatches > 0 ? Math.round((G.totalWins/G.totalMatches)*100) : 0;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="val">${G.totalWins}</div><div class="lbl">Vitórias</div></div>
+    <div class="stat-card"><div class="val">${G.totalLosses}</div><div class="lbl">Derrotas</div></div>
+    <div class="stat-card"><div class="val">${winRate}%</div><div class="lbl">Taxa de Vitória</div></div>
+    <div class="stat-card"><div class="val">${G.titles}</div><div class="lbl">Títulos</div></div>
+    <div class="stat-card"><div class="val">${G.grandSlams}</div><div class="lbl">Grand Slams</div></div>
+    <div class="stat-card"><div class="val">${G.stats.aces}</div><div class="lbl">Aces</div></div>
+    <div class="stat-card"><div class="val">${G.stats.winners}</div><div class="lbl">Winners</div></div>
+    <div class="stat-card"><div class="val">${G.stats.doubleFaults}</div><div class="lbl">Duplas Faltas</div></div>
+    <div class="stat-card"><div class="val">${G.season}</div><div class="lbl">Temporadas</div></div>
+    <div class="stat-card"><div class="val">${G.level}</div><div class="lbl">Nível</div></div>
+  `;
+}
+
+// ============================================================
+// TOURNAMENT / MATCH FLOW
+// ============================================================
+let currentTournament = null;
+let currentRound = 0;
+let matchWins = 0;
+
+function startTournament(tid) {
+  const t = TOURNAMENTS_DATA.find(x=>x.id===tid);
+  if(!t) return;
+  if(G.worldRank > t.rankReq) { showNotification('Ranking insuficiente!','warning'); return; }
+  currentTournament = t;
+  currentRound = 1;
+  matchWins = 0;
+  startMatch(t, currentRound);
+}
+
+function getOpponentForRound(t, round) {
+  const difficulty = Math.min(1, (round / t.rounds) * (1 - G.worldRank/500));
+  const tierMult = { challenger:0.3, atp250:0.5, atp500:0.65, masters:0.8, 'grand-slam':0.95 }[t.tier] || 0.5;
+  const aiLevel = Math.max(1, Math.min(10, Math.round((difficulty + tierMult) * 10)));
+  const names = WORLD_PLAYERS.slice(0, Math.max(5, Math.floor(WORLD_PLAYERS.length * tierMult)));
+  const opp = names[Math.floor(Math.random()*names.length)];
+  return { name: opp.name, aiLevel, surface: t.surface };
+}
+
+function startMatch(t, round) {
+  const opp = getOpponentForRound(t, round);
+  document.getElementById('hudPlayerName').textContent = G.name;
+  document.getElementById('hudAIName').textContent = opp.name;
+  document.getElementById('hudTournamentName').textContent = t.name;
+  document.getElementById('hudSurface').textContent = t.surface + ' • Rodada ' + round;
+  showScreen('gameScreen');
+  initTennisGame(opp);
+}
+
+// ============================================================
+// TENNIS GAME ENGINE
+// ============================================================
+let canvas, ctx2d;
+let gameState = {};
+let animFrame = null;
+let keys = {};
+let paused = false;
+
+function initTennisGame(opponent) {
+  canvas = document.getElementById('gameCanvas');
+  ctx2d = canvas.getContext('2d');
+  resizeCanvas();
+  
+  const surface = opponent.surface || 'Quadra Dura';
+  const aiLvl = opponent.aiLevel || 3;
+  
+  gameState = {
+    opponent,
+    surface,
+    surfaceColor: SURFACE_COLORS[surface] || '#1a4a8a',
+    
+    // Court dimensions (logical)
+    courtW: 600, courtH: 800,
+    
+    // Player
+    player: {
+      x: 300, y: 650,
+      w: 24, h: 24,
+      speed: 3 + G.attrs.speed * 0.4,
+      energy: 100,
+      serving: true,
+      score: 0, sets: 0,
+      gamesWon: [0,0,0],
+      currentSet: 0,
+    },
+    
+    // AI
+    ai: {
+      x: 300, y: 150,
+      w: 24, h: 24,
+      speed: 2 + aiLvl * 0.35,
+      energy: 100,
+      score: 0, sets: 0,
+      gamesWon: [0,0,0],
+      currentSet: 0,
+      targetX: 300, targetY: 150,
+      reactionDelay: Math.max(5, 30 - aiLvl * 2),
+      reactionTimer: 0,
+    },
+    
+    // Ball
+    ball: {
+      x: 300, y: 600,
+      vx: 0, vy: 0,
+      radius: 8,
+      inPlay: false,
+      bounces: 0,
+      lastHitBy: 'player',
+      spin: 0,
+      trail: [],
+    },
+    
+    // Game state
+    serving: 'player',
+    serveCount: 0,
+    rallyCount: 0,
+    gameOver: false,
+    winner: null,
+    
+    // Score
+    playerPoints: 0, aiPoints: 0,
+    playerGames: 0, aiGames: 0,
+    playerSets: 0, aiSets: 0,
+    playerSetGames: [[0,0],[0,0],[0,0]],
+    currentSet: 0,
+    deuce: false,
+    advantage: null,
+    
+    // Effects
+    hitEffects: [],
+    scoreFlash: null,
+    scoreFlashTimer: 0,
+    
+    // Stats
+    matchAces: 0,
+    matchWinners: 0,
+    matchDF: 0,
+    
+    // Timing
+    serveTimer: 120,
+    pointDelay: 0,
+  };
+  
+  paused = false;
+  document.getElementById('pauseOverlay').classList.add('overlay-hidden');
+  document.getElementById('matchResultOverlay').classList.add('overlay-hidden');
+  
+  if(animFrame) cancelAnimationFrame(animFrame);
+  gameLoop();
+}
+
+function resizeCanvas() {
+  const hud = document.querySelector('.game-hud');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - (hud ? hud.offsetHeight : 60);
+}
+
+window.addEventListener('resize', ()=>{ if(canvas) resizeCanvas(); });
+
+// INPUT
+window.addEventListener('keydown', e=>{
+  keys[e.key] = true;
+  if(e.key==='Escape') togglePause();
+  if(e.key===' ') { e.preventDefault(); if(gameState.serving==='player' && !gameState.ball.inPlay) serveBall(); }
+});
+window.addEventListener('keyup', e=>{ keys[e.key] = false; });
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pauseOverlay').classList.toggle('overlay-hidden', !paused);
+  if(!paused) gameLoop();
+}
+
+function quitMatch() {
+  paused = false;
+  if(animFrame) cancelAnimationFrame(animFrame);
+  document.getElementById('pauseOverlay').classList.add('overlay-hidden');
+  showScreen('careerScreen');
+  updateCareerUI();
+}
+
+function serveBall() {
+  const gs = gameState;
+  if(gs.ball.inPlay) return;
+  gs.ball.inPlay = true;
+  gs.serveCount++;
+  gs.rallyCount = 0;
+  
+  const isPlayer = gs.serving === 'player';
+  const speed = 5 + (isPlayer ? G.attrs.serve * 0.5 : gs.ai.speed * 0.8);
+  const accuracy = isPlayer ? G.attrs.accuracy / 10 : 0.7;
+  
+  gs.ball.x = isPlayer ? gs.player.x : gs.ai.x;
+  gs.ball.y = isPlayer ? gs.player.y - 20 : gs.ai.y + 20;
+  
+  const targetX = gs.courtW/2 + (Math.random()-0.5) * gs.courtW * 0.4 * accuracy;
+  const targetY = isPlayer ? 200 + Math.random()*150 : 550 + Math.random()*100;
+  
+  const dx = targetX - gs.ball.x;
+  const dy = targetY - gs.ball.y;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+  
+  gs.ball.vx = (dx/dist) * speed;
+  gs.ball.vy = (dy/dist) * speed;
+  gs.ball.spin = (Math.random()-0.5) * 2;
+  gs.ball.lastHitBy = gs.serving;
+  gs.ball.bounces = 0;
+  gs.ball.trail = [];
+  
+  // Check double fault
+  if(gs.serveCount >= 2 && !isPlayer) {
+    // AI double fault - rare
+    if(Math.random() < 0.05) { gs.ball.inPlay = false; awardPoint('player', 'doublefault'); return; }
+  }
+  
+  playSound('serve');
+  
+  // Ace chance
+  if(isPlayer && G.attrs.serve >= 8 && Math.random() < 0.05) {
+    gs.matchAces++;
+    G.stats.aces++;
+    setTimeout(()=>{ awardPoint('player','ace'); }, 800);
+  }
+}
+
+function gameLoop() {
+  if(paused) return;
+  update();
+  render();
+  animFrame = requestAnimationFrame(gameLoop);
+}
+
+function update() {
+  const gs = gameState;
+  if(gs.gameOver) return;
+  
+  // Point delay
+  if(gs.pointDelay > 0) { gs.pointDelay--; return; }
+  
+  // Serve timer
+  if(!gs.ball.inPlay) {
+    gs.serveTimer--;
+    if(gs.serveTimer <= 0) {
+      gs.serveTimer = 120;
+      if(gs.serving === 'player') {
+        // Auto-serve hint
+      } else {
+        serveBall();
+      }
+    }
+    return;
+  }
+  
+  // Player movement
+  const p = gs.player;
+  const spd = p.speed;
+  if((keys['ArrowLeft']||keys['a']||keys['A']) && p.x > 30) p.x -= spd;
+  if((keys['ArrowRight']||keys['d']||keys['D']) && p.x < gs.courtW-30) p.x += spd;
+  if((keys['ArrowUp']||keys['w']||keys['W']) && p.y > gs.courtH/2+20) p.y -= spd;
+  if((keys['ArrowDown']||keys['s']||keys['S']) && p.y < gs.courtH-20) p.y += spd;
+  
+  // AI movement
+  const ai = gs.ai;
+  ai.reactionTimer++;
+  if(ai.reactionTimer >= ai.reactionDelay) {
+    ai.reactionTimer = 0;
+    if(gs.ball.inPlay) {
+      ai.targetX = gs.ball.x + gs.ball.vx * 8;
+      ai.targetY = Math.min(gs.courtH/2-20, Math.max(20, gs.ball.y + gs.ball.vy * 5));
+    } else {
+      ai.targetX = gs.courtW/2;
+      ai.targetY = 150;
+    }
+  }
+  const aiDx = ai.targetX - ai.x;
+  const aiDy = ai.targetY - ai.y;
+  const aiDist = Math.sqrt(aiDx*aiDx+aiDy*aiDy);
+  if(aiDist > 2) {
+    ai.x += (aiDx/aiDist) * ai.speed;
+    ai.y += (aiDy/aiDist) * ai.speed;
+  }
+  ai.x = Math.max(20, Math.min(gs.courtW-20, ai.x));
+  ai.y = Math.max(20, Math.min(gs.courtH/2-10, ai.y));
+  
+  // Ball physics
+  const b = gs.ball;
+  b.trail.push({x:b.x, y:b.y});
+  if(b.trail.length > 8) b.trail.shift();
+  
+  b.x += b.vx;
+  b.y += b.vy;
+  b.vx += b.spin * 0.05;
+  b.vx *= 0.995;
+  b.vy *= 0.995;
+  
+  // Wall bounces
+  if(b.x < b.radius) { b.x = b.radius; b.vx = Math.abs(b.vx); playSound('bounce'); }
+  if(b.x > gs.courtW - b.radius) { b.x = gs.courtW-b.radius; b.vx = -Math.abs(b.vx); playSound('bounce'); }
+  
+  // Net collision
+  const netY = gs.courtH/2;
+  if(b.y > netY-4 && b.y < netY+4 && Math.abs(b.vy) < 3) {
+    b.inPlay = false;
+    awardPoint(b.lastHitBy==='player'?'ai':'player', 'net');
+    return;
+  }
+  
+  // Out of bounds (top/bottom)
+  if(b.y < -20) {
+    b.inPlay = false;
+    awardPoint('player', 'out');
+    return;
+  }
+  if(b.y > gs.courtH + 20) {
+    b.inPlay = false;
+    awardPoint('ai', 'out');
+    return;
+  }
+  
+  // Player hit detection
+  const pdx = b.x - p.x;
+  const pdy = b.y - p.y;
+  if(Math.sqrt(pdx*pdx+pdy*pdy) < 28 && b.lastHitBy !== 'player' && b.y > gs.courtH/2) {
+    hitBall('player', b, p);
+  }
+  
+  // AI hit detection
+  const adx = b.x - ai.x;
+  const ady = b.y - ai.y;
+  if(Math.sqrt(adx*adx+ady*ady) < 28 && b.lastHitBy !== 'ai' && b.y < gs.courtH/2) {
+    hitBall('ai', b, ai);
+  }
+  
+  // Score flash
+  if(gs.scoreFlashTimer > 0) gs.scoreFlashTimer--;
+  
+  // Update HUD
+  updateHUD();
+}
+
+function hitBall(who, b, player) {
+  b.lastHitBy = who;
+  b.bounces = 0;
+  gs = gameState;
+  
+  let targetX, targetY, speed;
+  
+  if(who === 'player') {
+    targetX = gs.courtW * 0.1 + Math.random() * gs.courtW * 0.8;
+    targetY = 100 + Math.random() * (gs.courtH/2 - 150);
+    speed = 4 + G.attrs.serve * 0.3 + G.attrs.accuracy * 0.2;
+    b.spin = (Math.random()-0.5) * G.attrs.spin * 0.4;
+    
+    // Winner chance
+    if(G.attrs.accuracy >= 7 && Math.random() < 0.08) {
+      gs.matchWinners++;
+      G.stats.winners++;
+      speed *= 1.5;
+    }
+    
+    // Add hit effect
+    gs.hitEffects.push({ x: player.x, y: player.y, r: 0, maxR: 30, color: '#00d4ff', life: 20 });
+    playSound('hit');
+  } else {
+    targetX = gs.courtW * 0.1 + Math.random() * gs.courtW * 0.8;
+    targetY = gs.courtH - 100 - Math.random() * 200;
+    speed = 3 + gs.ai.speed * 0.5;
+    b.spin = (Math.random()-0.5) * 2;
+    gs.hitEffects.push({ x: player.x, y: player.y, r: 0, maxR: 25, color: '#ff6b35', life: 20 });
+    playSound('hit');
+  }
+  
+  const dx = targetX - b.x;
+  const dy = targetY - b.y;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+  b.vx = (dx/dist) * speed;
+  b.vy = (dy/dist) * speed;
+  
+  gs.rallyCount++;
+}
+
+let gs; // alias for gameState in hitBall
+
+function awardPoint(winner, reason) {
+  const gs = gameState;
+  gs.ball.inPlay = false;
+  gs.ball.trail = [];
+  gs.serveTimer = 90;
+  gs.rallyCount = 0;
+  gs.pointDelay = 60;
+  
+  playSound(winner==='player'?'point':'bounce');
+  
+  if(winner === 'player') {
+    gs.playerPoints++;
+    G.stats.pointsWon++;
+  } else {
+    gs.aiPoints++;
+    G.stats.pointsLost++;
+  }
+  
+  gs.scoreFlash = winner;
+  gs.scoreFlashTimer = 60;
+  
+  // Check game
+  checkGame(gs);
+}
+
+function checkGame(gs) {
+  const pp = gs.playerPoints;
+  const ap = gs.aiPoints;
+  
+  // Deuce logic
+  if(pp >= 3 && ap >= 3) {
+    if(pp === ap) { gs.deuce = true; gs.advantage = null; }
+    else if(pp > ap) {
+      if(gs.advantage === 'player') { gameWon('player', gs); return; }
+      gs.advantage = 'player'; gs.deuce = false;
+    } else {
+      if(gs.advantage === 'ai') { gameWon('ai', gs); return; }
+      gs.advantage = 'ai'; gs.deuce = false;
+    }
+  } else if(pp >= 4) { gameWon('player', gs); }
+  else if(ap >= 4) { gameWon('ai', gs); }
+  
+  // Reset serve
+  gs.serving = gs.playerPoints % 2 === 0 ? 'player' : 'ai';
+  gs.serveCount = 0;
+}
+
+function gameWon(winner, gs) {
+  gs.playerPoints = 0; gs.aiPoints = 0;
+  gs.deuce = false; gs.advantage = null;
+  gs.serveCount = 0;
+  
+  if(winner === 'player') gs.playerGames++;
+  else gs.aiGames++;
+  
+  gs.playerSetGames[gs.currentSet] = [gs.playerGames, gs.aiGames];
+  
+  // Check set
+  const pg = gs.playerGames, ag = gs.aiGames;
+  if((pg >= 6 && pg - ag >= 2) || pg === 7) { setWon('player', gs); }
+  else if((ag >= 6 && ag - pg >= 2) || ag === 7) { setWon('ai', gs); }
+  
+  gs.serving = winner === 'player' ? 'ai' : 'player';
+}
+
+function setWon(winner, gs) {
+  if(winner === 'player') gs.playerSets++;
+  else gs.aiSets++;
+  
+  gs.playerGames = 0; gs.aiGames = 0;
+  gs.currentSet++;
+  
+  // Best of 3
+  if(gs.playerSets >= 2) { matchOver('player', gs); }
+  else if(gs.aiSets >= 2) { matchOver('ai', gs); }
+}
+
+function matchOver(winner, gs) {
+  gs.gameOver = true;
+  gs.winner = winner;
+  
+  const won = winner === 'player';
+  playSound(won ? 'win' : 'lose');
+  
+  // Update career stats
+  G.totalMatches++;
+  if(won) {
+    G.totalWins++;
+    G.seasonWins++;
+    matchWins++;
+    
+    // XP and money
+    const xpGain = 20 + currentRound * 10 + (currentTournament ? ['challenger','atp250','atp500','masters','grand-slam'].indexOf(currentTournament.tier) * 15 : 0);
+    const moneyGain = currentTournament ? Math.floor(currentTournament.prize / currentTournament.rounds * currentRound * 0.3) : 1000;
+    const ptsGain = currentTournament ? Math.floor(currentTournament.pts / currentTournament.rounds * currentRound) : 10;
+    
+    // Sponsor bonus
+    const sponsorBonus = G.activeSponsors.reduce((sum,id)=>{ const s=SPONSORS_DATA.find(x=>x.id===id); return sum+(s?s.bonus/currentTournament.rounds:0); },0);
+    
+    G.money += moneyGain + Math.floor(sponsorBonus);
+    G.rankPts += ptsGain;
+    addXP(xpGain);
+    
+    // Update match stats
+    G.stats.aces += gs.matchAces;
+    G.stats.winners += gs.matchWinners;
+    
+    // Update world rank
+    updateWorldRank();
+    
+    // Show result
+    showMatchResult(true, moneyGain + Math.floor(sponsorBonus), xpGain, ptsGain);
+    
+    // Continue tournament?
+    if(currentTournament && currentRound < currentTournament.rounds) {
+      // Will continue after player clicks
+    } else if(currentTournament) {
+      // Won tournament!
+      G.titles++;
+      if(currentTournament.tier === 'grand-slam') G.grandSlams++;
+      showNotification('🏆 CAMPEÃO! Você venceu ' + currentTournament.name + '!', 'gold');
+    }
+  } else {
+    G.totalLosses++;
+    const xpGain = 5 + currentRound * 3;
+    const moneyGain = currentTournament ? Math.floor(currentTournament.prize / currentTournament.rounds * (currentRound-1) * 0.2) : 200;
+    G.money += moneyGain;
+    addXP(xpGain);
+    showMatchResult(false, moneyGain, xpGain, 0);
+  }
+  
+  // Update calendar
+  const calEntry = G.calendar.find(c=>c.status==='upcoming');
+  if(calEntry) {
+    calEntry.status = 'completed';
+    calEntry.result = { win: won, round: currentRound };
+  }
+  
+  saveCareer();
+}
+
+function showMatchResult(won, money, xp, pts) {
+  const gs = gameState;
+  const card = document.getElementById('matchResultCard');
+  card.className = 'match-result ' + (won?'win':'lose');
+  document.getElementById('matchResultTitle').textContent = won ? '🏆 VITÓRIA!' : '😔 DERROTA';
+  document.getElementById('matchResultScore').textContent = `${gs.playerSets} - ${gs.aiSets} (Sets)`;
+  document.getElementById('matchRewards').innerHTML = `
+    <div class="reward-item"><div class="r-val">💰 $${money.toLocaleString()}</div><div class="r-lbl">Dinheiro</div></div>
+    <div class="reward-item"><div class="r-val">⭐ ${xp}</div><div class="r-lbl">XP</div></div>
+    ${pts>0?`<div class="reward-item"><div class="r-val">🏅 ${pts}</div><div class="r-lbl">Pontos ATP</div></div>`:''}
+  `;
+  document.getElementById('matchResultOverlay').classList.remove('overlay-hidden');
+}
+
+function finishMatch() {
+  document.getElementById('matchResultOverlay').classList.add('overlay-hidden');
+  if(animFrame) cancelAnimationFrame(animFrame);
+  
+  const won = gameState.winner === 'player';
+  if(won && currentTournament && currentRound < currentTournament.rounds) {
+    currentRound++;
+    startMatch(currentTournament, currentRound);
+  } else {
+    showScreen('careerScreen');
+    updateCareerUI();
+    showCareerSection('overview');
+  }
+}
+
+function addXP(amount) {
+  G.xp += amount;
+  while(G.xp >= G.xpNext) {
+    G.xp -= G.xpNext;
+    G.level++;
+    G.skillPoints += 3;
+    G.xpNext = Math.floor(G.xpNext * 1.3);
+    showLevelUp();
+  }
+}
+
+function showLevelUp() {
+  const el = document.createElement('div');
+  el.className = 'level-up-anim';
+  el.textContent = '⬆ LEVEL UP! Nível ' + G.level;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2000);
+  playSound('win');
+}
+
+function updateWorldRank() {
+  // Calculate rank based on ATP points
+  const allPts = [...WORLD_PLAYERS.map(p=>p.pts), G.rankPts].sort((a,b)=>b-a);
+  G.worldRank = allPts.indexOf(G.rankPts) + 1;
+  if(G.worldRank < 1) G.worldRank = 1;
+}
+
+function newSeason() {
+  G.season++;
+  G.week = 1;
+  G.seasonWins = 0;
+  generateCalendar();
+  saveCareer();
+  updateCareerUI();
+  showNotification('🌟 Temporada ' + G.season + ' iniciada!', 'success');
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  const gs = gameState;
+  if(!ctx2d || !canvas) return;
+  
+  const W = canvas.width, H = canvas.height;
+  ctx2d.clearRect(0,0,W,H);
+  
+  // Scale court to canvas
+  const scaleX = W / gs.courtW;
+  const scaleY = H / gs.courtH;
+  const scale = Math.min(scaleX, scaleY) * 0.9;
+  const offX = (W - gs.courtW * scale) / 2;
+  const offY = (H - gs.courtH * scale) / 2;
+  
+  ctx2d.save();
+  ctx2d.translate(offX, offY);
+  ctx2d.scale(scale, scale);
+  
+  // Background
+  ctx2d.fillStyle = '#0a0a1a';
+  ctx2d.fillRect(-offX/scale, -offY/scale, W/scale, H/scale);
+  
+  // Court surface
+  ctx2d.fillStyle = gs.surfaceColor;
+  ctx2d.fillRect(0, 0, gs.courtW, gs.courtH);
+  
+  // Court lines
+  ctx2d.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx2d.lineWidth = 2;
+  
+  // Outer boundary
+  ctx2d.strokeRect(20, 20, gs.courtW-40, gs.courtH-40);
+  
+  // Net
+  ctx2d.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx2d.lineWidth = 3;
+  ctx2d.beginPath();
+  ctx2d.moveTo(20, gs.courtH/2);
+  ctx2d.lineTo(gs.courtW-20, gs.courtH/2);
+  ctx2d.stroke();
+  
+  // Net post
+  ctx2d.fillStyle = '#fff';
+  ctx2d.fillRect(15, gs.courtH/2-5, 10, 10);
+  ctx2d.fillRect(gs.courtW-25, gs.courtH/2-5, 10, 10);
+  
+  // Service boxes
+  ctx2d.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx2d.lineWidth = 1.5;
+  // Center service line
+  ctx2d.beginPath();
+  ctx2d.moveTo(gs.courtW/2, 20);
+  ctx2d.lineTo(gs.courtW/2, gs.courtH-20);
+  ctx2d.stroke();
+  // Service lines
+  ctx2d.beginPath();
+  ctx2d.moveTo(20, gs.courtH/2 - 150);
+  ctx2d.lineTo(gs.courtW-20, gs.courtH/2 - 150);
+  ctx2d.stroke();
+  ctx2d.beginPath();
+  ctx2d.moveTo(20, gs.courtH/2 + 150);
+  ctx2d.lineTo(gs.courtW-20, gs.courtH/2 + 150);
+  ctx2d.stroke();
+  
+  // Score flash overlay
+  if(gs.scoreFlashTimer > 0) {
+    const alpha = gs.scoreFlashTimer / 60 * 0.15;
+    ctx2d.fillStyle = gs.scoreFlash === 'player' ? `rgba(0,212,255,${alpha})` : `rgba(255,107,53,${alpha})`;
+    ctx2d.fillRect(0,0,gs.courtW,gs.courtH);
+  }
+  
+  // Hit effects
+  gs.hitEffects = gs.hitEffects.filter(e=>e.life>0);
+  gs.hitEffects.forEach(e=>{
+    e.r += 2; e.life--;
+    ctx2d.beginPath();
+    ctx2d.arc(e.x, e.y, e.r, 0, Math.PI*2);
+    ctx2d.strokeStyle = e.color + Math.floor(e.life/20*255).toString(16).padStart(2,'0');
+    ctx2d.lineWidth = 2;
+    ctx2d.stroke();
+  });
+  
+  // Ball trail
+  const b = gs.ball;
+  b.trail.forEach((t,i)=>{
+    const alpha = (i/b.trail.length) * 0.4;
+    const r = b.radius * (i/b.trail.length) * 0.7;
+    ctx2d.beginPath();
+    ctx2d.arc(t.x, t.y, r, 0, Math.PI*2);
+    ctx2d.fillStyle = `rgba(200,255,0,${alpha})`;
+    ctx2d.fill();
+  });
+  
+  // Ball
+  if(gs.ball.inPlay || !gs.gameOver) {
+    const grad = ctx2d.createRadialGradient(b.x-2, b.y-2, 1, b.x, b.y, b.radius);
+    grad.addColorStop(0, '#e8ff80');
+    grad.addColorStop(1, '#8bc34a');
+    ctx2d.beginPath();
+    ctx2d.arc(b.x, b.y, b.radius, 0, Math.PI*2);
+    ctx2d.fillStyle = grad;
+    ctx2d.fill();
+    ctx2d.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx2d.lineWidth = 1;
+    ctx2d.stroke();
+    // Ball seam
+    ctx2d.beginPath();
+    ctx2d.arc(b.x, b.y, b.radius*0.7, 0.3, Math.PI-0.3);
+    ctx2d.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx2d.lineWidth = 1;
+    ctx2d.stroke();
+  }
+  
+  // Player
+  drawPlayer(ctx2d, gs.player, '#00d4ff', G.name.charAt(0));
+  
+  // AI
+  drawPlayer(ctx2d, gs.ai, '#ff6b35', gs.opponent.name.charAt(0));
+  
+  // Serve indicator
+  if(!gs.ball.inPlay && !gs.gameOver) {
+    const isPlayerServe = gs.serving === 'player';
+    ctx2d.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx2d.font = '14px Segoe UI';
+    ctx2d.textAlign = 'center';
+    if(isPlayerServe) {
+      ctx2d.fillText('PRESSIONE ESPAÇO PARA SACAR', gs.courtW/2, gs.courtH - 40);
+    } else {
+      ctx2d.fillText('Aguardando saque do oponente...', gs.courtW/2, 50);
+    }
+  }
+  
+  // Score display on court
+  ctx2d.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx2d.fillRect(gs.courtW/2-60, gs.courtH/2-18, 120, 36);
+  ctx2d.fillStyle = '#fff';
+  ctx2d.font = 'bold 16px Segoe UI';
+  ctx2d.textAlign = 'center';
+  const pScore = gs.deuce ? 'D' : gs.advantage==='player' ? 'AD' : SCORE_LABELS[Math.min(gs.playerPoints,4)];
+  const aScore = gs.deuce ? 'D' : gs.advantage==='ai' ? 'AD' : SCORE_LABELS[Math.min(gs.aiPoints,4)];
+  ctx2d.fillText(pScore + ' - ' + aScore, gs.courtW/2, gs.courtH/2+6);
+  
+  ctx2d.restore();
+}
+
+function drawPlayer(ctx, player, color, initial) {
+  // Shadow
+  ctx.beginPath();
+  ctx.ellipse(player.x, player.y+player.h/2+2, player.w/2, 5, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fill();
+  
+  // Body
+  const grad = ctx.createRadialGradient(player.x-3, player.y-3, 2, player.x, player.y, player.w/2);
+  grad.addColorStop(0, color);
+  grad.addColorStop(1, color+'88');
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.w/2, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  
+  // Initial
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(initial, player.x, player.y);
+  ctx.textBaseline = 'alphabetic';
+}
+
+function updateHUD() {
+  const gs = gameState;
+  const pScore = gs.deuce ? 'D' : gs.advantage==='player' ? 'AD' : SCORE_LABELS[Math.min(gs.playerPoints,4)];
+  const aScore = gs.deuce ? 'D' : gs.advantage==='ai' ? 'AD' : SCORE_LABELS[Math.min(gs.aiPoints,4)];
+  document.getElementById('hudPlayerScore').textContent = pScore;
+  document.getElementById('hudAIScore').textContent = aScore;
+  document.getElementById('hudPlayerSets').textContent = 'Sets: ' + gs.playerSets + ' | Games: ' + gs.playerGames;
+  document.getElementById('hudAISets').textContent = 'Sets: ' + gs.aiSets + ' | Games: ' + gs.aiGames;
+  document.getElementById('hudSetScore').textContent = gs.playerSets + ' - ' + gs.aiSets;
+}
+
+// ============================================================
+// SAVE / LOAD
+// ============================================================
+function saveCareer() {
+  localStorage.setItem('tennisCareer', JSON.stringify(G));
+}
+
+function loadCareer() {
+  const data = localStorage.getItem('tennisCareer');
+  if(data) {
+    G = JSON.parse(data);
+    showScreen('careerScreen');
+    updateCareerUI();
+    showNotification('Carreira carregada!', 'success');
+  }
+}
+
+function resetCareer() {
+  if(confirm('Tem certeza que deseja reiniciar a carreira? Todo o progresso será perdido!')) {
+    localStorage.removeItem('tennisCareer');
+    G = {};
+    document.getElementById('continueBtn').style.display='none';
+    document.getElementById('resetBtn').style.display='none';
+    showScreen('menuScreen');
+    showNotification('Carreira reiniciada.', 'warning');
+  }
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+function showNotification(msg, type='') {
+  const el = document.createElement('div');
+  el.className = 'notification ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', ()=>{
+  initGame();
+  // Check for saved career
+  if(localStorage.getItem('tennisCareer')) {
+    document.getElementById('continueBtn').style.display='block';
+    document.getElementById('resetBtn').style.display='block';
+  }
+});
+</script>
 </body>
 </html>
