@@ -1,27 +1,1748 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDEM - Conectando corações</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.49.1"
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tennis Career - Modo Carreira</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a1a; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
+  
+  /* SCREENS */
+  .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  
+  /* MENU */
+  #menuScreen { background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a1a2e 100%); }
+  .menu-title { font-size: 4rem; font-weight: 900; background: linear-gradient(90deg, #00d4ff, #7b2fff, #ff6b35); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; margin-bottom: 0.5rem; text-shadow: none; letter-spacing: 2px; }
+  .menu-subtitle { color: #aaa; font-size: 1.1rem; margin-bottom: 3rem; text-align: center; }
+  .menu-btn { background: linear-gradient(135deg, #7b2fff, #00d4ff); border: none; color: #fff; padding: 1rem 3rem; font-size: 1.1rem; font-weight: 700; border-radius: 50px; cursor: pointer; margin: 0.5rem; transition: all 0.3s; min-width: 220px; letter-spacing: 1px; }
+  .menu-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(123,47,255,0.5); }
+  .menu-btn.secondary { background: transparent; border: 2px solid #7b2fff; }
+  .menu-btn.secondary:hover { background: rgba(123,47,255,0.2); }
+  .menu-btn.danger { background: linear-gradient(135deg, #ff4444, #ff6b35); }
+  .tennis-ball-deco { width: 80px; height: 80px; background: radial-gradient(circle at 35% 35%, #d4ff00, #a8cc00); border-radius: 50%; margin: 0 auto 2rem; box-shadow: 0 0 40px rgba(212,255,0,0.4); animation: float 3s ease-in-out infinite; position: relative; }
+  .tennis-ball-deco::after { content: ''; position: absolute; top: 20%; left: 10%; width: 80%; height: 60%; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; transform: rotate(-30deg); }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+  
+  /* CREATE PLAYER */
+  #createScreen { background: linear-gradient(135deg, #0a0a1a, #1a1a3e); }
+  .create-form { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2.5rem; width: 420px; max-width: 95vw; }
+  .create-form h2 { font-size: 1.8rem; margin-bottom: 1.5rem; text-align: center; color: #00d4ff; }
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label { display: block; color: #aaa; font-size: 0.85rem; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1px; }
+  .form-group input, .form-group select { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 0.8rem 1rem; color: #fff; font-size: 1rem; outline: none; transition: border-color 0.3s; }
+  .form-group input:focus, .form-group select:focus { border-color: #7b2fff; }
+  .form-group select option { background: #1a1a3e; }
+  .attr-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
+  .attr-item { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+  .attr-item span { color: #00d4ff; font-weight: 700; }
+  
+  /* CAREER */
+  #careerScreen { background: #0a0a1a; flex-direction: row; align-items: stretch; justify-content: flex-start; }
+  .career-sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.08); padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
+  .career-main { flex: 1; padding: 1.5rem; overflow-y: auto; }
+  .player-card { background: linear-gradient(135deg, rgba(123,47,255,0.2), rgba(0,212,255,0.1)); border: 1px solid rgba(123,47,255,0.3); border-radius: 15px; padding: 1rem; margin-bottom: 1rem; text-align: center; }
+  .player-avatar { width: 60px; height: 60px; background: linear-gradient(135deg, #7b2fff, #00d4ff); border-radius: 50%; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; }
+  .player-name-display { font-size: 1rem; font-weight: 700; }
+  .player-rank { color: #ffd700; font-size: 0.85rem; }
+  .sidebar-nav-btn { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #ccc; padding: 0.7rem 1rem; border-radius: 10px; cursor: pointer; text-align: left; font-size: 0.9rem; transition: all 0.2s; width: 100%; }
+  .sidebar-nav-btn:hover, .sidebar-nav-btn.active { background: rgba(123,47,255,0.2); border-color: #7b2fff; color: #fff; }
+  .sidebar-nav-btn .nav-icon { margin-right: 0.5rem; }
+  .career-section { display: none; }
+  .career-section.active { display: block; }
+  .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: #00d4ff; border-bottom: 1px solid rgba(0,212,255,0.2); padding-bottom: 0.5rem; }
+  
+  /* STATS BARS */
+  .stat-row { display: flex; align-items: center; margin-bottom: 0.8rem; }
+  .stat-label { width: 120px; font-size: 0.85rem; color: #aaa; }
+  .stat-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+  .stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .stat-value { width: 40px; text-align: right; font-size: 0.85rem; font-weight: 700; color: #00d4ff; }
+  .stat-plus-btn { background: rgba(123,47,255,0.3); border: 1px solid #7b2fff; color: #fff; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; transition: all 0.2s; }
+  .stat-plus-btn:hover { background: #7b2fff; }
+  .stat-plus-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  
+  /* XP BAR */
+  .xp-bar-container { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+  .xp-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #aaa; margin-bottom: 0.4rem; }
+  .xp-bar-bg { height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: linear-gradient(90deg, #7b2fff, #00d4ff); border-radius: 5px; transition: width 0.5s ease; }
+  .money-display { background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,165,0,0.05)); border: 1px solid rgba(255,215,0,0.3); border-radius: 10px; padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; font-weight: 700; color: #ffd700; margin-bottom: 1rem; }
+  
+  /* TOURNAMENTS */
+  .tournament-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .tournament-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 1.2rem; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+  .tournament-card:hover { border-color: #7b2fff; transform: translateY(-3px); box-shadow: 0 10px 30px rgba(123,47,255,0.2); }
+  .tournament-card.locked { opacity: 0.4; cursor: not-allowed; }
+  .tournament-card.locked:hover { transform: none; box-shadow: none; }
+  .tournament-tier { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
+  .tournament-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .tournament-prize { color: #ffd700; font-size: 0.85rem; }
+  .tournament-req { color: #ff6b35; font-size: 0.75rem; margin-top: 0.3rem; }
+  .tier-grand-slam { color: #ffd700; }
+  .tier-masters { color: #c0c0c0; }
+  .tier-atp500 { color: #cd7f32; }
+  .tier-atp250 { color: #aaa; }
+  .lock-icon { position: absolute; top: 0.8rem; right: 0.8rem; font-size: 1rem; }
+  
+  /* SHOP */
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+  .shop-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 1.2rem; text-align: center; transition: all 0.3s; }
+  .shop-item:hover { border-color: #00d4ff; }
+  .shop-item-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .shop-item-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .shop-item-desc { font-size: 0.75rem; color: #aaa; margin-bottom: 0.8rem; }
+  .shop-item-price { color: #ffd700; font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .shop-buy-btn { background: linear-gradient(135deg, #7b2fff, #00d4ff); border: none; color: #fff; padding: 0.4rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: all 0.2s; width: 100%; }
+  .shop-buy-btn:hover { opacity: 0.85; }
+  .shop-buy-btn:disabled { background: rgba(255,255,255,0.1); cursor: not-allowed; }
+  .shop-buy-btn.owned { background: rgba(0,212,255,0.2); border: 1px solid #00d4ff; cursor: default; }
+  
+  /* SPONSORS */
+  .sponsor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .sponsor-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 1.2rem; transition: all 0.3s; }
+  .sponsor-card.active { border-color: #ffd700; background: rgba(255,215,0,0.05); }
+  .sponsor-card.locked { opacity: 0.4; }
+  .sponsor-logo { font-size: 2rem; margin-bottom: 0.5rem; }
+  .sponsor-name { font-weight: 700; margin-bottom: 0.3rem; }
+  .sponsor-bonus { color: #00d4ff; font-size: 0.8rem; }
+  .sponsor-req { color: #ff6b35; font-size: 0.75rem; }
+  
+  /* RANKING */
+  .ranking-table { width: 100%; border-collapse: collapse; }
+  .ranking-table th { text-align: left; padding: 0.7rem 1rem; color: #aaa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .ranking-table td { padding: 0.7rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+  .ranking-table tr.player-row { background: rgba(123,47,255,0.15); }
+  .ranking-table tr:hover { background: rgba(255,255,255,0.03); }
+  .rank-badge { display: inline-block; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-size: 0.8rem; font-weight: 700; }
+  .rank-1 { background: #ffd700; color: #000; }
+  .rank-2 { background: #c0c0c0; color: #000; }
+  .rank-3 { background: #cd7f32; color: #000; }
+  .rank-other { background: rgba(255,255,255,0.1); }
+  
+  /* STATS PAGE */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; text-align: center; }
+  .stat-card-value { font-size: 2rem; font-weight: 900; color: #00d4ff; }
+  .stat-card-label { font-size: 0.75rem; color: #aaa; margin-top: 0.3rem; }
+  
+  /* GAME SCREEN */
+  #gameScreen { background: #0a0a1a; flex-direction: column; }
+  .game-hud { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.5rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; z-index: 10; }
+  .hud-player { display: flex; flex-direction: column; align-items: center; min-width: 150px; }
+  .hud-name { font-size: 0.85rem; color: #aaa; }
+  .hud-score { font-size: 2rem; font-weight: 900; color: #fff; }
+  .hud-sets { font-size: 0.8rem; color: #00d4ff; }
+  .hud-center { text-align: center; }
+  .hud-set-score { font-size: 1.2rem; font-weight: 700; color: #ffd700; }
+  .hud-tournament { font-size: 0.75rem; color: #aaa; }
+  .energy-bar { width: 100px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 0.3rem; }
+  .energy-fill { height: 100%; background: linear-gradient(90deg, #ff4444, #ffd700, #00ff88); border-radius: 3px; transition: width 0.3s; }
+  
+  #gameCanvas { display: block; cursor: none; }
+  
+  .game-controls-hint { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.3); font-size: 0.75rem; pointer-events: none; }
+  
+  /* PAUSE OVERLAY */
+  #pauseOverlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+  #pauseOverlay.visible { display: flex; }
+  .pause-title { font-size: 3rem; font-weight: 900; color: #fff; margin-bottom: 2rem; }
+  
+  /* MATCH RESULT */
+  #resultOverlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+  #resultOverlay.visible { display: flex; }
+  .result-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 0.5rem; }
+  .result-win { color: #00ff88; }
+  .result-lose { color: #ff4444; }
+  .result-details { color: #aaa; font-size: 1rem; margin-bottom: 1rem; }
+  .result-rewards { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 1.5rem 2rem; margin-bottom: 2rem; text-align: center; }
+  .reward-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 1rem; }
+  .reward-xp { color: #7b2fff; }
+  .reward-money { color: #ffd700; }
+  
+  /* NOTIFICATIONS */
+  #notification { position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #7b2fff, #00d4ff); color: #fff; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 700; z-index: 9999; transform: translateX(200%); transition: transform 0.4s ease; max-width: 300px; }
+  #notification.show { transform: translateX(0); }
+  
+  /* LEVEL UP */
+  #levelUpOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; flex-direction: column; align-items: center; justify-content: center; }
+  #levelUpOverlay.visible { display: flex; }
+  .levelup-title { font-size: 4rem; font-weight: 900; background: linear-gradient(90deg, #ffd700, #ff6b35); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+  .levelup-level { font-size: 1.5rem; color: #fff; margin-bottom: 1rem; }
+  .levelup-points { color: #00d4ff; font-size: 1rem; margin-bottom: 2rem; }
+  
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+  ::-webkit-scrollbar-thumb { background: rgba(123,47,255,0.4); border-radius: 3px; }
+  
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .career-sidebar { width: 200px; }
+    .tournament-grid { grid-template-columns: 1fr 1fr; }
+    .menu-title { font-size: 2.5rem; }
   }
-}
-</script>
+  
+  /* TABS */
+  .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+  .tab-btn.active { background: rgba(123,47,255,0.3); border-color: #7b2fff; color: #fff; }
+  
+  /* SEASON INFO */
+  .season-banner { background: linear-gradient(135deg, rgba(123,47,255,0.2), rgba(0,212,255,0.1)); border: 1px solid rgba(123,47,255,0.3); border-radius: 15px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+  .season-info h3 { font-size: 1.1rem; color: #00d4ff; }
+  .season-info p { color: #aaa; font-size: 0.85rem; }
+  .season-progress { text-align: right; }
+  .season-progress .big-num { font-size: 2rem; font-weight: 900; color: #ffd700; }
+  
+  /* MATCH HISTORY */
+  .match-history-item { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 1rem; border-radius: 10px; margin-bottom: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+  .match-result-w { color: #00ff88; font-weight: 700; }
+  .match-result-l { color: #ff4444; font-weight: 700; }
+  
+  /* TOOLTIP */
+  .tooltip { position: relative; }
+  .tooltip:hover::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.75rem; white-space: nowrap; z-index: 999; }
+</style>
 </head>
 <body>
-    <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+
+<!-- NOTIFICATION -->
+<div id="notification"></div>
+
+<!-- LEVEL UP OVERLAY -->
+<div id="levelUpOverlay">
+  <div class="levelup-title">LEVEL UP!</div>
+  <div class="levelup-level" id="levelUpText">Nível 2</div>
+  <div class="levelup-points">+3 pontos de atributo para distribuir!</div>
+  <button class="menu-btn" onclick="closeLevelUp()">Distribuir Pontos</button>
+</div>
+
+<!-- ===== MENU SCREEN ===== -->
+<div id="menuScreen" class="screen active">
+  <div class="tennis-ball-deco"></div>
+  <div class="menu-title">TENNIS CAREER</div>
+  <div class="menu-subtitle">Torne-se o melhor tenista do mundo</div>
+  <button class="menu-btn" id="startBtn" onclick="startGame()">🎾 Iniciar Carreira</button>
+  <button class="menu-btn secondary" id="continueBtn" onclick="continueGame()" style="display:none">▶ Continuar Carreira</button>
+  <button class="menu-btn secondary danger" id="resetBtn" onclick="resetGame()" style="display:none">🔄 Reiniciar Carreira</button>
+</div>
+
+<!-- ===== CREATE PLAYER SCREEN ===== -->
+<div id="createScreen" class="screen">
+  <div class="create-form">
+    <h2>🎾 Criar Jogador</h2>
+    <div class="form-group">
+      <label>Nome do Jogador</label>
+      <input type="text" id="playerNameInput" placeholder="Digite seu nome..." maxlength="20">
+    </div>
+    <div class="form-group">
+      <label>Estilo de Jogo</label>
+      <select id="playerStyle">
+        <option value="balanced">Equilibrado - Atributos balanceados</option>
+        <option value="aggressive">Agressivo - Força e Saque altos</option>
+        <option value="defensive">Defensivo - Velocidade e Reflexo altos</option>
+        <option value="technical">Técnico - Precisão e Spin altos</option>
+      </select>
+    </div>
+    <div class="attr-preview" id="attrPreview"></div>
+    <br>
+    <button class="menu-btn" onclick="createPlayer()" style="width:100%;margin:0">Criar Jogador</button>
+    <br><br>
+    <button class="menu-btn secondary" onclick="showScreen('menuScreen')" style="width:100%;margin:0">Voltar</button>
+  </div>
+</div>
+
+<!-- ===== CAREER SCREEN ===== -->
+<div id="careerScreen" class="screen">
+  <!-- SIDEBAR -->
+  <div class="career-sidebar">
+    <div class="player-card">
+      <div class="player-avatar" id="sidebarAvatar">?</div>
+      <div class="player-name-display" id="sidebarName">Jogador</div>
+      <div class="player-rank" id="sidebarRank">🏆 Rank #100</div>
+      <div style="color:#aaa;font-size:0.75rem;margin-top:0.3rem" id="sidebarLevel">Nível 1</div>
+    </div>
+    <div class="xp-bar-container">
+      <div class="xp-label"><span>XP</span><span id="xpText">0/100</span></div>
+      <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
+    </div>
+    <div class="money-display">💰 <span id="moneyDisplay">$0</span></div>
+    <button class="sidebar-nav-btn active" onclick="showCareerSection('overview')">🏠 <span class="nav-icon"></span>Visão Geral</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('tournaments')">🏆 Torneios</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('attributes')">⚡ Atributos</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('shop')">🛒 Loja</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('sponsors')">🤝 Patrocinadores</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('ranking')">📊 Ranking</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('stats')">📈 Estatísticas</button>
+    <button class="sidebar-nav-btn" onclick="showCareerSection('history')">📋 Histórico</button>
+    <div style="flex:1"></div>
+    <button class="sidebar-nav-btn" onclick="showScreen('menuScreen')" style="color:#ff6b35;border-color:rgba(255,107,53,0.3)">← Menu</button>
+  </div>
+  
+  <!-- MAIN CONTENT -->
+  <div class="career-main">
+    <!-- OVERVIEW -->
+    <div class="career-section active" id="section-overview">
+      <div class="section-title">Visão Geral da Carreira</div>
+      <div class="season-banner">
+        <div class="season-info">
+          <h3 id="seasonTitle">Temporada 1</h3>
+          <p id="seasonDesc">Início da sua jornada no tênis profissional</p>
+        </div>
+        <div class="season-progress">
+          <div class="big-num" id="rankDisplay">#100</div>
+          <div style="color:#aaa;font-size:0.8rem">Ranking Mundial</div>
+        </div>
+      </div>
+      <div class="stats-grid" id="overviewStats"></div>
+      <div style="margin-top:1rem">
+        <div class="section-title" style="font-size:1.1rem">Próximos Torneios</div>
+        <div id="nextTournaments"></div>
+      </div>
+    </div>
+    
+    <!-- TOURNAMENTS -->
+    <div class="career-section" id="section-tournaments">
+      <div class="section-title">Calendário de Torneios</div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterTournaments('all',this)">Todos</button>
+        <button class="tab-btn" onclick="filterTournaments('atp250',this)">ATP 250</button>
+        <button class="tab-btn" onclick="filterTournaments('atp500',this)">ATP 500</button>
+        <button class="tab-btn" onclick="filterTournaments('masters',this)">Masters</button>
+        <button class="tab-btn" onclick="filterTournaments('grand-slam',this)">Grand Slams</button>
+      </div>
+      <div class="tournament-grid" id="tournamentGrid"></div>
+    </div>
+    
+    <!-- ATTRIBUTES -->
+    <div class="career-section" id="section-attributes">
+      <div class="section-title">Atributos do Jogador</div>
+      <div style="background:rgba(123,47,255,0.1);border:1px solid rgba(123,47,255,0.3);border-radius:12px;padding:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:1.1rem;font-weight:700">Pontos Disponíveis</div>
+          <div style="color:#aaa;font-size:0.85rem">Use para melhorar seus atributos</div>
+        </div>
+        <div style="font-size:2.5rem;font-weight:900;color:#7b2fff" id="attrPoints">0</div>
+      </div>
+      <div id="attributesList"></div>
+    </div>
+    
+    <!-- SHOP -->
+    <div class="career-section" id="section-shop">
+      <div class="section-title">Loja de Equipamentos</div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterShop('all',this)">Todos</button>
+        <button class="tab-btn" onclick="filterShop('racket',this)">🎾 Raquetes</button>
+        <button class="tab-btn" onclick="filterShop('outfit',this)">👕 Roupas</button>
+        <button class="tab-btn" onclick="filterShop('upgrade',this)">⚡ Upgrades</button>
+      </div>
+      <div class="shop-grid" id="shopGrid"></div>
+    </div>
+    
+    <!-- SPONSORS -->
+    <div class="career-section" id="section-sponsors">
+      <div class="section-title">Patrocinadores</div>
+      <p style="color:#aaa;margin-bottom:1.5rem">Desbloqueie patrocinadores atingindo o ranking necessário. Patrocinadores ativos dão bônus de dinheiro por vitória.</p>
+      <div class="sponsor-grid" id="sponsorGrid"></div>
+    </div>
+    
+    <!-- RANKING -->
+    <div class="career-section" id="section-ranking">
+      <div class="section-title">Ranking Mundial ATP</div>
+      <table class="ranking-table" id="rankingTable">
+        <thead><tr><th>#</th><th>Jogador</th><th>País</th><th>Pontos</th></tr></thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+    
+    <!-- STATS -->
+    <div class="career-section" id="section-stats">
+      <div class="section-title">Estatísticas da Carreira</div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+    
+    <!-- HISTORY -->
+    <div class="career-section" id="section-history">
+      <div class="section-title">Histórico de Partidas</div>
+      <div id="matchHistoryList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div id="gameScreen" class="screen">
+  <div class="game-hud">
+    <div class="hud-player">
+      <div class="hud-name" id="hudPlayerName">Jogador</div>
+      <div class="hud-score" id="hudPlayerScore">0</div>
+      <div class="hud-sets" id="hudPlayerSets">Sets: 0</div>
+      <div class="energy-bar"><div class="energy-fill" id="playerEnergy" style="width:100%"></div></div>
+    </div>
+    <div class="hud-center">
+      <div class="hud-tournament" id="hudTournament">Torneio</div>
+      <div class="hud-set-score" id="hudSetScore">0 - 0</div>
+      <div style="color:#aaa;font-size:0.75rem" id="hudRound">Round 1</div>
+      <div style="color:#aaa;font-size:0.75rem;margin-top:0.3rem">P para pausar</div>
+    </div>
+    <div class="hud-player" style="align-items:flex-end">
+      <div class="hud-name" id="hudAIName">Oponente</div>
+      <div class="hud-score" id="hudAIScore">0</div>
+      <div class="hud-sets" id="hudAISets">Sets: 0</div>
+      <div class="energy-bar"><div class="energy-fill" id="aiEnergy" style="width:100%"></div></div>
+    </div>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div class="game-controls-hint">WASD / Setas para mover | P para pausar</div>
+  
+  <!-- PAUSE -->
+  <div id="pauseOverlay">
+    <div class="pause-title">⏸ PAUSADO</div>
+    <button class="menu-btn" onclick="togglePause()">▶ Continuar</button>
+    <button class="menu-btn secondary" onclick="quitMatch()" style="margin-top:0.5rem">🚪 Abandonar Partida</button>
+  </div>
+  
+  <!-- RESULT -->
+  <div id="resultOverlay">
+    <div class="result-title" id="resultTitle">VITÓRIA!</div>
+    <div class="result-details" id="resultDetails">Você venceu a partida!</div>
+    <div class="result-rewards" id="resultRewards"></div>
+    <button class="menu-btn" onclick="afterMatch()">Continuar</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// AUDIO ENGINE - Sons gerados via Web Audio API
+// ============================================================
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+
+function playSound(type) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    const now = ctx.currentTime;
+    
+    switch(type) {
+      case 'hit':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.start(now); osc.stop(now + 0.15);
+        break;
+      case 'bounce':
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+        break;
+      case 'point':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.setValueAtTime(659, now + 0.1);
+        osc.frequency.setValueAtTime(784, now + 0.2);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.start(now); osc.stop(now + 0.4);
+        break;
+      case 'fault':
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.start(now); osc.stop(now + 0.25);
+        break;
+      case 'win':
+        [523,659,784,1047].forEach((f,i) => {
+          const o2 = ctx.createOscillator();
+          const g2 = ctx.createGain();
+          o2.connect(g2); g2.connect(ctx.destination);
+          o2.type = 'sine';
+          o2.frequency.value = f;
+          g2.gain.setValueAtTime(0.25, now + i*0.12);
+          g2.gain.exponentialRampToValueAtTime(0.001, now + i*0.12 + 0.3);
+          o2.start(now + i*0.12); o2.stop(now + i*0.12 + 0.3);
+        });
+        break;
+      case 'levelup':
+        [392,494,587,784].forEach((f,i) => {
+          const o2 = ctx.createOscillator();
+          const g2 = ctx.createGain();
+          o2.connect(g2); g2.connect(ctx.destination);
+          o2.type = 'triangle';
+          o2.frequency.value = f;
+          g2.gain.setValueAtTime(0.3, now + i*0.1);
+          g2.gain.exponentialRampToValueAtTime(0.001, now + i*0.1 + 0.25);
+          o2.start(now + i*0.1); o2.stop(now + i*0.1 + 0.25);
+        });
+        break;
+      case 'buy':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1100, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.start(now); osc.stop(now + 0.25);
+        break;
+    }
+  } catch(e) {}
+}
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let gameState = {
+  player: {
+    name: 'Jogador',
+    style: 'balanced',
+    level: 1,
+    xp: 0,
+    xpToNext: 100,
+    attrPoints: 0,
+    money: 500,
+    rank: 100,
+    rankPoints: 0,
+    season: 1,
+    attrs: { speed: 3, serve: 3, precision: 3, spin: 3, reflex: 3 },
+    equipment: { racket: 'basic', outfit: 'default' },
+    owned: [],
+    sponsors: [],
+    stats: {
+      matchesPlayed: 0, matchesWon: 0, tournamentsWon: 0,
+      totalXP: 0, totalMoney: 0, aces: 0, winners: 0
+    },
+    matchHistory: []
+  },
+  worldRanking: [],
+  currentTournament: null,
+  currentRound: 0,
+  currentOpponent: null,
+  pendingLevelUp: false
+};
+
+// ============================================================
+// WORLD PLAYERS
+// ============================================================
+const worldPlayers = [
+  {name:'Carlos Alcaraz',country:'🇪🇸',points:9500,rank:1},
+  {name:'Jannik Sinner',country:'🇮🇹',points:9200,rank:2},
+  {name:'Novak Djokovic',country:'🇷🇸',points:8800,rank:3},
+  {name:'Daniil Medvedev',country:'🇷🇺',points:7500,rank:4},
+  {name:'Alexander Zverev',country:'🇩🇪',points:7000,rank:5},
+  {name:'Andrey Rublev',country:'🇷🇺',points:5500,rank:6},
+  {name:'Holger Rune',country:'🇩🇰',points:4800,rank:7},
+  {name:'Stefanos Tsitsipas',country:'🇬🇷',points:4500,rank:8},
+  {name:'Taylor Fritz',country:'🇺🇸',points:4200,rank:9},
+  {name:'Casper Ruud',country:'🇳🇴',points:4000,rank:10},
+  {name:'Tommy Paul',country:'🇺🇸',points:3500,rank:11},
+  {name:'Ben Shelton',country:'🇺🇸',points:3200,rank:12},
+  {name:'Grigor Dimitrov',country:'🇧🇬',points:3000,rank:13},
+  {name:'Ugo Humbert',country:'🇫🇷',points:2800,rank:14},
+  {name:'Sebastian Korda',country:'🇺🇸',points:2600,rank:15},
+  {name:'Nicolas Jarry',country:'🇨🇱',points:2400,rank:16},
+  {name:'Alejandro Davidovich',country:'🇪🇸',points:2200,rank:17},
+  {name:'Lorenzo Musetti',country:'🇮🇹',points:2000,rank:18},
+  {name:'Tomas Machac',country:'🇨🇿',points:1800,rank:19},
+  {name:'Jiri Lehecka',country:'🇨🇿',points:1600,rank:20},
+];
+
+// ============================================================
+// TOURNAMENTS DATA
+// ============================================================
+const tournamentsData = [
+  {id:'challenger1',name:'Challenger São Paulo',tier:'atp250',prize:5000,rankReq:200,rankPoints:250,rounds:3,surface:'clay'},
+  {id:'challenger2',name:'Challenger Buenos Aires',tier:'atp250',prize:5000,rankReq:200,rankPoints:250,rounds:3,surface:'clay'},
+  {id:'atp250_1',name:'ATP 250 Córdoba',tier:'atp250',prize:12000,rankReq:150,rankPoints:250,rounds:4,surface:'clay'},
+  {id:'atp250_2',name:'ATP 250 Marrakech',tier:'atp250',prize:12000,rankReq:150,rankPoints:250,rounds:4,surface:'clay'},
+  {id:'atp250_3',name:'ATP 250 Eastbourne',tier:'atp250',prize:15000,rankReq:120,rankPoints:250,rounds:4,surface:'grass'},
+  {id:'atp500_1',name:'ATP 500 Hamburgo',tier:'atp500',prize:30000,rankReq:80,rankPoints:500,rounds:5,surface:'clay'},
+  {id:'atp500_2',name:'ATP 500 Basileia',tier:'atp500',prize:35000,rankReq:70,rankPoints:500,rounds:5,surface:'indoor'},
+  {id:'atp500_3',name:'ATP 500 Acapulco',tier:'atp500',prize:32000,rankReq:75,rankPoints:500,rounds:5,surface:'hard'},
+  {id:'masters_1',name:'Masters 1000 Monte Carlo',tier:'masters',prize:80000,rankReq:40,rankPoints:1000,rounds:6,surface:'clay'},
+  {id:'masters_2',name:'Masters 1000 Madrid',tier:'masters',prize:90000,rankReq:35,rankPoints:1000,rounds:6,surface:'clay'},
+  {id:'masters_3',name:'Masters 1000 Cincinnati',tier:'masters',prize:85000,rankReq:30,rankPoints:1000,rounds:6,surface:'hard'},
+  {id:'masters_4',name:'Masters 1000 Paris',tier:'masters',prize:95000,rankReq:25,rankPoints:1000,rounds:6,surface:'indoor'},
+  {id:'gs_ao',name:'Australian Open',tier:'grand-slam',prize:200000,rankReq:15,rankPoints:2000,rounds:7,surface:'hard'},
+  {id:'gs_rg',name:'Roland Garros',tier:'grand-slam',prize:220000,rankReq:12,rankPoints:2000,rounds:7,surface:'clay'},
+  {id:'gs_wim',name:'Wimbledon',tier:'grand-slam',prize:250000,rankReq:10,rankPoints:2000,rounds:7,surface:'grass'},
+  {id:'gs_uso',name:'US Open',tier:'grand-slam',prize:230000,rankReq:8,rankPoints:2000,rounds:7,surface:'hard'},
+];
+
+// ============================================================
+// SHOP DATA
+// ============================================================
+const shopData = [
+  {id:'racket_wood',name:'Raquete de Madeira',category:'racket',icon:'🎾',price:0,desc:'Raquete básica de iniciante',bonus:{},owned:true},
+  {id:'racket_alloy',name:'Raquete de Liga',category:'racket',icon:'🎾',price:800,desc:'+2 Força do Saque',bonus:{serve:2}},
+  {id:'racket_carbon',name:'Raquete de Carbono',category:'racket',icon:'🎾',price:2500,desc:'+3 Precisão, +2 Saque',bonus:{precision:3,serve:2}},
+  {id:'racket_pro',name:'Raquete Pro Tour',category:'racket',icon:'🎾',price:6000,desc:'+4 Precisão, +3 Saque, +2 Spin',bonus:{precision:4,serve:3,spin:2}},
+  {id:'racket_legend',name:'Raquete Lendária',category:'racket',icon:'🎾',price:15000,desc:'+5 em todos os atributos',bonus:{speed:2,serve:5,precision:5,spin:4,reflex:2}},
+  {id:'outfit_basic',name:'Roupa Básica',category:'outfit',icon:'👕',price:0,desc:'Roupa padrão de iniciante',bonus:{},owned:true},
+  {id:'outfit_sport',name:'Roupa Esportiva',category:'outfit',icon:'👕',price:500,desc:'+1 Velocidade',bonus:{speed:1}},
+  {id:'outfit_pro',name:'Roupa Profissional',category:'outfit',icon:'👕',price:1500,desc:'+2 Velocidade, +1 Reflexo',bonus:{speed:2,reflex:1}},
+  {id:'outfit_champion',name:'Roupa de Campeão',category:'outfit',icon:'👕',price:4000,desc:'+3 Velocidade, +2 Reflexo',bonus:{speed:3,reflex:2}},
+  {id:'upgrade_shoes',name:'Tênis Profissional',category:'upgrade',icon:'👟',price:1200,desc:'+3 Velocidade, +1 Reflexo',bonus:{speed:3,reflex:1}},
+  {id:'upgrade_grip',name:'Grip Premium',category:'upgrade',icon:'🖐️',price:600,desc:'+2 Controle de Spin',bonus:{spin:2}},
+  {id:'upgrade_strings',name:'Cordas de Titânio',category:'upgrade',icon:'⚡',price:900,desc:'+2 Força do Saque',bonus:{serve:2}},
+  {id:'upgrade_wristband',name:'Munhequeira Ergonômica',category:'upgrade',icon:'💪',price:400,desc:'+1 Precisão, +1 Reflexo',bonus:{precision:1,reflex:1}},
+  {id:'upgrade_headband',name:'Faixa de Concentração',category:'upgrade',icon:'🧠',price:700,desc:'+2 Precisão',bonus:{precision:2}},
+  {id:'upgrade_nutrition',name:'Plano Nutricional',category:'upgrade',icon:'🥗',price:2000,desc:'+2 em todos os atributos',bonus:{speed:1,serve:1,precision:1,spin:1,reflex:1}},
+];
+
+// ============================================================
+// SPONSORS DATA
+// ============================================================
+const sponsorsData = [
+  {id:'sp1',name:'TennisPro',logo:'🎾',rankReq:80,bonus:1.1,desc:'+10% dinheiro por vitória'},
+  {id:'sp2',name:'SportMax',logo:'👟',rankReq:50,bonus:1.2,desc:'+20% dinheiro por vitória'},
+  {id:'sp3',name:'AceWear',logo:'👕',rankReq:30,bonus:1.3,desc:'+30% dinheiro por vitória'},
+  {id:'sp4',name:'PowerRacket',logo:'⚡',rankReq:15,bonus:1.5,desc:'+50% dinheiro por vitória'},
+  {id:'sp5',name:'GlobalSport',logo:'🌍',rankReq:5,bonus:2.0,desc:'+100% dinheiro por vitória'},
+];
+
+// ============================================================
+// STYLES INITIAL ATTRS
+// ============================================================
+const styleAttrs = {
+  balanced:   {speed:3,serve:3,precision:3,spin:3,reflex:3},
+  aggressive: {speed:2,serve:5,precision:2,spin:2,reflex:4},
+  defensive:  {speed:5,serve:2,precision:3,spin:2,reflex:5},
+  technical:  {speed:3,serve:2,precision:5,spin:5,reflex:2},
+};
+
+// ============================================================
+// SAVE / LOAD
+// ============================================================
+function saveGame() {
+  localStorage.setItem('tennisCareer_v2', JSON.stringify(gameState));
+}
+
+function loadGame() {
+  const data = localStorage.getItem('tennisCareer_v2');
+  if (data) {
+    try {
+      const loaded = JSON.parse(data);
+      gameState = loaded;
+      return true;
+    } catch(e) { return false; }
+  }
+  return false;
+}
+
+// ============================================================
+// SCREEN MANAGEMENT
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showCareerSection(id) {
+  document.querySelectorAll('.career-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderCareerSection(id);
+}
+
+// ============================================================
+// MENU INIT
+// ============================================================
+function initMenu() {
+  const hasSave = loadGame();
+  if (hasSave) {
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('continueBtn').style.display = 'block';
+    document.getElementById('resetBtn').style.display = 'block';
+  } else {
+    document.getElementById('startBtn').style.display = 'block';
+    document.getElementById('continueBtn').style.display = 'none';
+    document.getElementById('resetBtn').style.display = 'none';
+  }
+}
+
+function startGame() {
+  showScreen('createScreen');
+  updateAttrPreview();
+}
+
+function continueGame() {
+  loadGame();
+  initWorldRanking();
+  showScreen('careerScreen');
+  updateCareerUI();
+}
+
+function resetGame() {
+  if (confirm('Tem certeza? Toda a progressão será perdida!')) {
+    localStorage.removeItem('tennisCareer_v2');
+    location.reload();
+  }
+}
+
+// ============================================================
+// CREATE PLAYER
+// ============================================================
+document.getElementById('playerStyle').addEventListener('change', updateAttrPreview);
+
+function updateAttrPreview() {
+  const style = document.getElementById('playerStyle').value;
+  const attrs = styleAttrs[style];
+  const container = document.getElementById('attrPreview');
+  const labels = {speed:'Velocidade',serve:'Saque',precision:'Precisão',spin:'Spin',reflex:'Reflexo'};
+  container.innerHTML = Object.entries(attrs).map(([k,v]) =>
+    `<div class="attr-item">${labels[k]}: <span>${v}/10</span></div>`
+  ).join('');
+}
+
+function createPlayer() {
+  const name = document.getElementById('playerNameInput').value.trim();
+  if (!name) { showNotification('Digite um nome para o jogador!'); return; }
+  const style = document.getElementById('playerStyle').value;
+  
+  gameState.player.name = name;
+  gameState.player.style = style;
+  gameState.player.attrs = {...styleAttrs[style]};
+  gameState.player.owned = ['racket_wood','outfit_basic'];
+  gameState.player.equipment = {racket:'racket_wood',outfit:'outfit_basic'};
+  
+  initWorldRanking();
+  saveGame();
+  showScreen('careerScreen');
+  updateCareerUI();
+  showNotification(`Bem-vindo, ${name}! Sua carreira começa agora! 🎾`);
+}
+
+// ============================================================
+// WORLD RANKING INIT
+// ============================================================
+function initWorldRanking() {
+  if (!gameState.worldRanking || gameState.worldRanking.length === 0) {
+    gameState.worldRanking = worldPlayers.map(p => ({...p}));
+  }
+}
+
+function updateWorldRanking() {
+  const p = gameState.player;
+  const existing = gameState.worldRanking.find(r => r.name === p.name);
+  if (existing) {
+    existing.points = p.rankPoints;
+  } else {
+    gameState.worldRanking.push({name:p.name,country:'🇧🇷',points:p.rankPoints,rank:p.rank});
+  }
+  gameState.worldRanking.sort((a,b) => b.points - a.points);
+  gameState.worldRanking.forEach((r,i) => r.rank = i+1);
+  const playerEntry = gameState.worldRanking.find(r => r.name === p.name);
+  if (playerEntry) p.rank = playerEntry.rank;
+}
+
+// ============================================================
+// CAREER UI UPDATE
+// ============================================================
+function updateCareerUI() {
+  const p = gameState.player;
+  const initials = p.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent = p.name;
+  document.getElementById('sidebarRank').textContent = `🏆 Rank #${p.rank}`;
+  document.getElementById('sidebarLevel').textContent = `Nível ${p.level}`;
+  document.getElementById('xpText').textContent = `${p.xp}/${p.xpToNext}`;
+  document.getElementById('xpBar').style.width = `${(p.xp/p.xpToNext)*100}%`;
+  document.getElementById('moneyDisplay').textContent = `$${p.money.toLocaleString()}`;
+  document.getElementById('attrPoints').textContent = p.attrPoints;
+  document.getElementById('rankDisplay').textContent = `#${p.rank}`;
+  document.getElementById('seasonTitle').textContent = `Temporada ${p.season}`;
+  renderCareerSection('overview');
+}
+
+// ============================================================
+// CAREER SECTIONS RENDER
+// ============================================================
+function renderCareerSection(id) {
+  switch(id) {
+    case 'overview': renderOverview(); break;
+    case 'tournaments': renderTournaments('all'); break;
+    case 'attributes': renderAttributes(); break;
+    case 'shop': renderShop('all'); break;
+    case 'sponsors': renderSponsors(); break;
+    case 'ranking': renderRanking(); break;
+    case 'stats': renderStats(); break;
+    case 'history': renderHistory(); break;
+  }
+}
+
+function renderOverview() {
+  const p = gameState.player;
+  const eff = getEffectiveAttrs();
+  document.getElementById('overviewStats').innerHTML = [
+    {v:p.level,l:'Nível'},{v:`#${p.rank}`,l:'Ranking'},{v:p.stats.matchesWon,l:'Vitórias'},
+    {v:p.stats.matchesPlayed,l:'Partidas'},{v:p.stats.tournamentsWon,l:'Títulos'},{v:`$${p.money.toLocaleString()}`,l:'Dinheiro'}
+  ].map(s=>`<div class="stat-card"><div class="stat-card-value">${s.v}</div><div class="stat-card-label">${s.l}</div></div>`).join('');
+  
+  const avail = tournamentsData.filter(t => t.rankReq >= p.rank || p.rank <= t.rankReq + 20).slice(0,3);
+  document.getElementById('nextTournaments').innerHTML = avail.map(t => `
+    <div class="match-history-item" style="cursor:pointer" onclick="showCareerSection('tournaments')">
+      <div>
+        <div style="font-weight:700">${t.name}</div>
+        <div style="color:#aaa;font-size:0.8rem">${t.tier.toUpperCase()} • ${t.surface}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="color:#ffd700">$${t.prize.toLocaleString()}</div>
+        <div style="color:#aaa;font-size:0.75rem">Req: #${t.rankReq}</div>
+      </div>
+    </div>
+  `).join('') || '<p style="color:#aaa">Nenhum torneio disponível no momento.</p>';
+}
+
+function renderTournaments(filter) {
+  const p = gameState.player;
+  let list = filter === 'all' ? tournamentsData : tournamentsData.filter(t => t.tier === filter);
+  document.getElementById('tournamentGrid').innerHTML = list.map(t => {
+    const locked = p.rank > t.rankReq;
+    const tierColors = {'grand-slam':'tier-grand-slam','masters':'tier-masters','atp500':'tier-atp500','atp250':'tier-atp250'};
+    return `
+      <div class="tournament-card ${locked?'locked':''}" onclick="${locked?'showNotification(\'Melhore seu ranking para participar!\')':'startTournament(\''+t.id+'\')'}">
+        ${locked?'<div class="lock-icon">🔒</div>':''}
+        <div class="tournament-tier ${tierColors[t.tier]||''}">${t.tier.toUpperCase()}</div>
+        <div class="tournament-name">${t.name}</div>
+        <div style="color:#aaa;font-size:0.8rem;margin-bottom:0.3rem">🎾 ${t.surface} • ${t.rounds} rounds</div>
+        <div class="tournament-prize">💰 $${t.prize.toLocaleString()}</div>
+        <div class="tournament-prize" style="color:#7b2fff">⭐ ${t.rankPoints} pts</div>
+        ${locked?`<div class="tournament-req">Req: Rank #${t.rankReq}</div>`:''}
+      </div>
+    `;
+  }).join('');
+}
+
+function filterTournaments(filter, btn) {
+  document.querySelectorAll('#section-tournaments .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTournaments(filter);
+}
+
+function renderAttributes() {
+  const p = gameState.player;
+  const labels = {speed:'Velocidade',serve:'Força do Saque',precision:'Precisão',spin:'Controle de Spin',reflex:'Reflexo'};
+  const colors = {speed:'#00d4ff',serve:'#ff6b35',precision:'#7b2fff',spin:'#00ff88',reflex:'#ffd700'};
+  const eff = getEffectiveAttrs();
+  
+  document.getElementById('attrPoints').textContent = p.attrPoints;
+  document.getElementById('attributesList').innerHTML = Object.entries(p.attrs).map(([k,v]) => {
+    const bonus = eff[k] - v;
+    return `
+      <div class="stat-row">
+        <div class="stat-label">${labels[k]}</div>
+        <div class="stat-bar-bg">
+          <div class="stat-bar-fill" style="width:${Math.min(eff[k]/15*100,100)}%;background:${colors[k]}"></div>
+        </div>
+        <div class="stat-value">${v}${bonus>0?`<span style="color:#ffd700;font-size:0.7rem">+${bonus}</span>`:''}</div>
+        <button class="stat-plus-btn" onclick="addAttrPoint('${k}')" ${p.attrPoints<=0||v>=10?'disabled':''}>+</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function addAttrPoint(attr) {
+  const p = gameState.player;
+  if (p.attrPoints <= 0 || p.attrs[attr] >= 10) return;
+  p.attrs[attr]++;
+  p.attrPoints--;
+  saveGame();
+  renderAttributes();
+  updateCareerUI();
+  showNotification(`${attr} aumentado para ${p.attrs[attr]}!`);
+}
+
+function getEffectiveAttrs() {
+  const p = gameState.player;
+  const eff = {...p.attrs};
+  // Apply equipment bonuses
+  p.owned.forEach(id => {
+    const item = shopData.find(s => s.id === id);
+    if (item && item.bonus) {
+      // Only apply if it's equipped (racket/outfit) or is an upgrade
+      const isEquipped = p.equipment.racket === id || p.equipment.outfit === id;
+      const isUpgrade = item.category === 'upgrade';
+      if (isEquipped || isUpgrade) {
+        Object.entries(item.bonus).forEach(([k,v]) => { eff[k] = (eff[k]||0) + v; });
+      }
+    }
+  });
+  return eff;
+}
+
+function renderShop(filter) {
+  const p = gameState.player;
+  let items = filter === 'all' ? shopData : shopData.filter(s => s.category === filter);
+  document.getElementById('shopGrid').innerHTML = items.map(item => {
+    const owned = p.owned.includes(item.id);
+    const equipped = p.equipment.racket === item.id || p.equipment.outfit === item.id;
+    const canAfford = p.money >= item.price;
+    let btnText = owned ? (equipped ? 'Equipado ✓' : 'Equipar') : `$${item.price.toLocaleString()}`;
+    let btnClass = owned ? 'owned' : '';
+    let btnDisabled = (!owned && !canAfford) || equipped;
+    const bonusText = Object.entries(item.bonus||{}).map(([k,v])=>`+${v} ${k}`).join(', ');
+    return `
+      <div class="shop-item">
+        <div class="shop-item-icon">${item.icon}</div>
+        <div class="shop-item-name">${item.name}</div>
+        <div class="shop-item-desc">${item.desc}</div>
+        ${bonusText?`<div style="color:#00d4ff;font-size:0.75rem;margin-bottom:0.5rem">${bonusText}</div>`:''}
+        <button class="shop-buy-btn ${btnClass}" ${btnDisabled?'disabled':''} onclick="shopAction('${item.id}')">
+          ${btnText}
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterShop(filter, btn) {
+  document.querySelectorAll('#section-shop .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderShop(filter);
+}
+
+function shopAction(id) {
+  const p = gameState.player;
+  const item = shopData.find(s => s.id === id);
+  if (!item) return;
+  
+  if (p.owned.includes(id)) {
+    // Equip
+    if (item.category === 'racket') p.equipment.racket = id;
+    else if (item.category === 'outfit') p.equipment.outfit = id;
+    showNotification(`${item.name} equipado!`);
+  } else {
+    if (p.money < item.price) { showNotification('Dinheiro insuficiente!'); return; }
+    p.money -= item.price;
+    p.owned.push(id);
+    if (item.category === 'racket') p.equipment.racket = id;
+    else if (item.category === 'outfit') p.equipment.outfit = id;
+    playSound('buy');
+    showNotification(`${item.name} comprado e equipado!`);
+  }
+  saveGame();
+  updateCareerUI();
+  renderShop('all');
+}
+
+function renderSponsors() {
+  const p = gameState.player;
+  document.getElementById('sponsorGrid').innerHTML = sponsorsData.map(sp => {
+    const unlocked = p.rank <= sp.rankReq;
+    const active = p.sponsors.includes(sp.id);
+    return `
+      <div class="sponsor-card ${active?'active':''} ${!unlocked?'locked':''}">
+        <div class="sponsor-logo">${sp.logo}</div>
+        <div class="sponsor-name">${sp.name}</div>
+        <div class="sponsor-bonus">${sp.desc}</div>
+        ${!unlocked?`<div class="sponsor-req">Req: Rank #${sp.rankReq}</div>`:''}
+        ${unlocked&&!active?`<button class="menu-btn" style="padding:0.4rem 1rem;font-size:0.8rem;margin-top:0.5rem" onclick="activateSponsor('${sp.id}')">Assinar Contrato</button>`:''}
+        ${active?'<div style="color:#ffd700;margin-top:0.5rem;font-size:0.85rem">✓ Ativo</div>':''}
+      </div>
+    `;
+  }).join('');
+}
+
+function activateSponsor(id) {
+  const p = gameState.player;
+  if (!p.sponsors.includes(id)) {
+    p.sponsors.push(id);
+    saveGame();
+    renderSponsors();
+    showNotification('Contrato de patrocínio assinado! 🤝');
+  }
+}
+
+function renderRanking() {
+  updateWorldRanking();
+  const p = gameState.player;
+  const tbody = document.getElementById('rankingBody');
+  tbody.innerHTML = gameState.worldRanking.slice(0,25).map((r,i) => {
+    const isPlayer = r.name === p.name;
+    const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
+    return `
+      <tr class="${isPlayer?'player-row':''}">
+        <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
+        <td>${r.name} ${isPlayer?'⭐':''}</td>
+        <td>${r.country||'🌍'}</td>
+        <td>${r.points.toLocaleString()}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderStats() {
+  const p = gameState.player;
+  const wr = p.stats.matchesPlayed > 0 ? Math.round(p.stats.matchesWon/p.stats.matchesPlayed*100) : 0;
+  document.getElementById('statsGrid').innerHTML = [
+    {v:p.stats.matchesPlayed,l:'Partidas Jogadas'},
+    {v:p.stats.matchesWon,l:'Vitórias'},
+    {v:p.stats.matchesPlayed-p.stats.matchesWon,l:'Derrotas'},
+    {v:`${wr}%`,l:'Taxa de Vitória'},
+    {v:p.stats.tournamentsWon,l:'Títulos'},
+    {v:p.stats.aces,l:'Aces'},
+    {v:p.stats.winners,l:'Winners'},
+    {v:`$${p.stats.totalMoney.toLocaleString()}`,l:'Total Ganho'},
+    {v:p.stats.totalXP,l:'XP Total'},
+    {v:p.level,l:'Nível Atual'},
+    {v:p.rank,l:'Melhor Ranking'},
+    {v:p.season,l:'Temporada'},
+  ].map(s=>`<div class="stat-card"><div class="stat-card-value">${s.v}</div><div class="stat-card-label">${s.l}</div></div>`).join('');
+}
+
+function renderHistory() {
+  const p = gameState.player;
+  if (!p.matchHistory || p.matchHistory.length === 0) {
+    document.getElementById('matchHistoryList').innerHTML = '<p style="color:#aaa">Nenhuma partida jogada ainda.</p>';
+    return;
+  }
+  document.getElementById('matchHistoryList').innerHTML = [...p.matchHistory].reverse().slice(0,30).map(m => `
+    <div class="match-history-item">
+      <div>
+        <div style="font-weight:700">${m.tournament}</div>
+        <div style="color:#aaa;font-size:0.8rem">vs ${m.opponent} • ${m.round}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="${m.won?'match-result-w':'match-result-l'}">${m.won?'VITÓRIA':'DERROTA'}</div>
+        <div style="color:#ffd700;font-size:0.8rem">+$${m.prize.toLocaleString()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// TOURNAMENT LOGIC
+// ============================================================
+function startTournament(id) {
+  const t = tournamentsData.find(t => t.id === id);
+  if (!t) return;
+  const p = gameState.player;
+  if (p.rank > t.rankReq) { showNotification('Ranking insuficiente!'); return; }
+  
+  gameState.currentTournament = {...t};
+  gameState.currentRound = 1;
+  
+  // Generate opponent for round 1
+  generateOpponent();
+  startMatch();
+}
+
+function generateOpponent() {
+  const t = gameState.currentTournament;
+  const p = gameState.player;
+  const round = gameState.currentRound;
+  
+  // Difficulty scales with tournament tier and round
+  const tierDiff = {atp250:0.3,atp500:0.5,masters:0.7,'grand-slam':0.9};
+  const baseDiff = tierDiff[t.tier] || 0.3;
+  const roundBonus = (round-1) * 0.08;
+  const difficulty = Math.min(baseDiff + roundBonus, 1.0);
+  
+  // Pick opponent from world ranking
+  const rankRange = Math.max(1, Math.floor(p.rank * (1 - difficulty)));
+  const maxRank = Math.min(worldPlayers.length, Math.floor(p.rank * (1 + difficulty * 0.5)));
+  const candidates = worldPlayers.filter(wp => wp.rank >= rankRange && wp.rank <= maxRank);
+  const opp = candidates.length > 0 ? candidates[Math.floor(Math.random()*candidates.length)] : worldPlayers[Math.floor(Math.random()*worldPlayers.length)];
+  
+  gameState.currentOpponent = {
+    name: opp.name,
+    country: opp.country,
+    difficulty: difficulty,
+    speed: 3 + difficulty * 7,
+    serve: 3 + difficulty * 7,
+    precision: 3 + difficulty * 7,
+    reflex: 3 + difficulty * 7,
+  };
+}
+
+// ============================================================
+// GAME ENGINE
+// ============================================================
+let canvas, ctx2d;
+let gameLoop = null;
+let paused = false;
+let matchOver = false;
+
+// Game objects
+let ball, playerPaddle, aiPaddle, gameScore;
+let keys = {};
+let particles = [];
+let hitFlash = 0;
+
+const COURT_COLOR = '#2d5a1b';
+const LINE_COLOR = 'rgba(255,255,255,0.8)';
+const BALL_COLOR = '#d4ff00';
+
+function startMatch() {
+  showScreen('gameScreen');
+  
+  canvas = document.getElementById('gameCanvas');
+  ctx2d = canvas.getContext('2d');
+  
+  // Size canvas
+  const hud = document.querySelector('.game-hud');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - hud.offsetHeight - 30;
+  
+  // HUD
+  const p = gameState.player;
+  const opp = gameState.currentOpponent;
+  const t = gameState.currentTournament;
+  document.getElementById('hudPlayerName').textContent = p.name;
+  document.getElementById('hudAIName').textContent = opp.name;
+  document.getElementById('hudTournament').textContent = t.name;
+  document.getElementById('hudRound').textContent = `Round ${gameState.currentRound} de ${t.rounds}`;
+  
+  initMatchState();
+  
+  // Input
+  keys = {};
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
+  
+  // Start loop
+  if (gameLoop) cancelAnimationFrame(gameLoop);
+  paused = false;
+  matchOver = false;
+  document.getElementById('pauseOverlay').classList.remove('visible');
+  document.getElementById('resultOverlay').classList.remove('visible');
+  
+  lastTime = performance.now();
+  gameLoop = requestAnimationFrame(gameFrame);
+}
+
+function initMatchState() {
+  const W = canvas.width, H = canvas.height;
+  const eff = getEffectiveAttrs();
+  
+  ball = {
+    x: W/2, y: H/2,
+    vx: (Math.random()>0.5?1:-1) * 4,
+    vy: (Math.random()>0.5?1:-1) * 3,
+    r: 8,
+    speed: 4,
+    trail: []
+  };
+  
+  playerPaddle = {
+    x: W/2, y: H - 60,
+    w: 60 + eff.precision * 2,
+    h: 12,
+    speed: 3 + eff.speed * 0.5,
+    energy: 100,
+    isPlayer: true
+  };
+  
+  const opp = gameState.currentOpponent;
+  aiPaddle = {
+    x: W/2, y: 60,
+    w: 55 + opp.precision * 1.5,
+    h: 12,
+    speed: 2 + opp.speed * 0.4,
+    energy: 100,
+    isPlayer: false
+  };
+  
+  gameScore = {
+    playerPoints: 0, aiPoints: 0,
+    playerGames: 0, aiGames: 0,
+    playerSets: 0, aiSets: 0,
+    serving: Math.random() > 0.5 ? 'player' : 'ai',
+    state: 'playing', // playing, point, serving
+    pointLabels: ['0','15','30','40','AD'],
+    aces: 0, winners: 0
+  };
+  
+  particles = [];
+  hitFlash = 0;
+  updateHUD();
+}
+
+let lastTime = 0;
+
+function gameFrame(ts) {
+  if (matchOver) return;
+  const dt = Math.min((ts - lastTime) / 16.67, 3);
+  lastTime = ts;
+  
+  if (!paused) {
+    updateGame(dt);
+  }
+  renderGame();
+  gameLoop = requestAnimationFrame(gameFrame);
+}
+
+function updateGame(dt) {
+  const W = canvas.width, H = canvas.height;
+  const eff = getEffectiveAttrs();
+  
+  // Player movement
+  const spd = playerPaddle.speed * dt;
+  if ((keys['ArrowLeft'] || keys['a'] || keys['A']) && playerPaddle.x - playerPaddle.w/2 > 0)
+    playerPaddle.x -= spd;
+  if ((keys['ArrowRight'] || keys['d'] || keys['D']) && playerPaddle.x + playerPaddle.w/2 < W)
+    playerPaddle.x += spd;
+  if ((keys['ArrowUp'] || keys['w'] || keys['W']) && playerPaddle.y - playerPaddle.h/2 > H/2)
+    playerPaddle.y -= spd * 0.5;
+  if ((keys['ArrowDown'] || keys['s'] || keys['S']) && playerPaddle.y + playerPaddle.h/2 < H - 10)
+    playerPaddle.y += spd * 0.5;
+  
+  // AI movement
+  const opp = gameState.currentOpponent;
+  const aiSpd = aiPaddle.speed * dt;
+  const aiTargetX = ball.x + (Math.random()-0.5) * (10 - opp.precision);
+  const aiTargetY = ball.y < H/2 ? ball.y : H/4;
+  
+  if (aiPaddle.x < aiTargetX - 2) aiPaddle.x = Math.min(aiPaddle.x + aiSpd, W - aiPaddle.w/2);
+  else if (aiPaddle.x > aiTargetX + 2) aiPaddle.x = Math.max(aiPaddle.x - aiSpd, aiPaddle.w/2);
+  
+  // Ball movement
+  ball.trail.push({x:ball.x,y:ball.y});
+  if (ball.trail.length > 8) ball.trail.shift();
+  
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+  
+  // Wall bounce
+  if (ball.x - ball.r < 0) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); playSound('bounce'); }
+  if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); playSound('bounce'); }
+  
+  // Player paddle collision
+  if (ball.vy > 0 &&
+      ball.y + ball.r >= playerPaddle.y - playerPaddle.h/2 &&
+      ball.y - ball.r <= playerPaddle.y + playerPaddle.h/2 &&
+      ball.x >= playerPaddle.x - playerPaddle.w/2 &&
+      ball.x <= playerPaddle.x + playerPaddle.w/2) {
+    
+    const hitPos = (ball.x - playerPaddle.x) / (playerPaddle.w/2);
+    const spinFactor = 1 + eff.spin * 0.05;
+    ball.vx = hitPos * 6 * spinFactor;
+    ball.vy = -Math.abs(ball.vy) * (1 + eff.serve * 0.03);
+    ball.speed = Math.min(ball.speed * 1.05, 12);
+    ball.y = playerPaddle.y - playerPaddle.h/2 - ball.r;
+    
+    hitFlash = 10;
+    spawnParticles(ball.x, ball.y, '#d4ff00', 8);
+    playSound('hit');
+    gameScore.winners++;
+  }
+  
+  // AI paddle collision
+  if (ball.vy < 0 &&
+      ball.y - ball.r <= aiPaddle.y + aiPaddle.h/2 &&
+      ball.y + ball.r >= aiPaddle.y - aiPaddle.h/2 &&
+      ball.x >= aiPaddle.x - aiPaddle.w/2 &&
+      ball.x <= aiPaddle.x + aiPaddle.w/2) {
+    
+    const hitPos = (ball.x - aiPaddle.x) / (aiPaddle.w/2);
+    ball.vx = hitPos * 5 * (1 + opp.precision * 0.04);
+    ball.vy = Math.abs(ball.vy) * (1 + opp.serve * 0.02);
+    ball.speed = Math.min(ball.speed * 1.03, 11);
+    ball.y = aiPaddle.y + aiPaddle.h/2 + ball.r;
+    
+    spawnParticles(ball.x, ball.y, '#ff6b35', 6);
+    playSound('hit');
+  }
+  
+  // Point scoring
+  if (ball.y - ball.r > H) {
+    // AI scores
+    scorePoint('ai');
+  } else if (ball.y + ball.r < 0) {
+    // Player scores
+    scorePoint('player');
+  }
+  
+  // Update particles
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vy += 0.2 * dt;
+    p.life -= dt;
+    p.alpha = p.life / p.maxLife;
+  });
+  
+  if (hitFlash > 0) hitFlash -= dt;
+  
+  // Energy drain
+  playerPaddle.energy = Math.max(0, playerPaddle.energy - 0.02 * dt);
+  aiPaddle.energy = Math.max(0, aiPaddle.energy - 0.015 * dt);
+  document.getElementById('playerEnergy').style.width = playerPaddle.energy + '%';
+  document.getElementById('aiEnergy').style.width = aiPaddle.energy + '%';
+}
+
+function scorePoint(scorer) {
+  playSound('point');
+  
+  if (scorer === 'player') {
+    gameScore.playerPoints++;
+    spawnParticles(canvas.width/2, canvas.height/2, '#00ff88', 15);
+  } else {
+    gameScore.aiPoints++;
+    spawnParticles(canvas.width/2, canvas.height/2, '#ff4444', 10);
+  }
+  
+  // Check game win (tennis scoring)
+  const pp = gameScore.playerPoints;
+  const ap = gameScore.aiPoints;
+  
+  let gameWon = false;
+  let gameWinner = null;
+  
+  if (pp >= 4 || ap >= 4) {
+    if (pp >= 4 && pp - ap >= 2) { gameWon = true; gameWinner = 'player'; }
+    else if (ap >= 4 && ap - pp >= 2) { gameWon = true; gameWinner = 'ai'; }
+  }
+  
+  if (gameWon) {
+    if (gameWinner === 'player') gameScore.playerGames++;
+    else gameScore.aiGames++;
+    gameScore.playerPoints = 0;
+    gameScore.aiPoints = 0;
+    
+    // Check set win
+    const pg = gameScore.playerGames;
+    const ag = gameScore.aiGames;
+    let setWon = false;
+    let setWinner = null;
+    
+    if (pg >= 6 || ag >= 6) {
+      if (pg >= 6 && pg - ag >= 2) { setWon = true; setWinner = 'player'; }
+      else if (ag >= 6 && ag - pg >= 2) { setWon = true; setWinner = 'ai'; }
+      else if (pg === 7 || ag === 7) { setWon = true; setWinner = pg > ag ? 'player' : 'ai'; }
+    }
+    
+    if (setWon) {
+      if (setWinner === 'player') gameScore.playerSets++;
+      else gameScore.aiSets++;
+      gameScore.playerGames = 0;
+      gameScore.aiGames = 0;
+      
+      // Check match win (best of 3)
+      if (gameScore.playerSets >= 2) endMatch(true);
+      else if (gameScore.aiSets >= 2) endMatch(false);
+    }
+  }
+  
+  // Reset ball
+  resetBall();
+  updateHUD();
+}
+
+function resetBall() {
+  const W = canvas.width, H = canvas.height;
+  ball.x = W/2;
+  ball.y = H/2;
+  ball.vx = (Math.random()>0.5?1:-1) * 4;
+  ball.vy = (Math.random()>0.5?1:-1) * 3;
+  ball.speed = 4;
+  ball.trail = [];
+}
+
+function updateHUD() {
+  const gs = gameScore;
+  const labels = ['0','15','30','40','AD'];
+  const pp = Math.min(gs.playerPoints, 4);
+  const ap = Math.min(gs.aiPoints, 4);
+  
+  let pLabel = labels[pp] || '40';
+  let aLabel = labels[ap] || '40';
+  
+  // Deuce/Advantage
+  if (gs.playerPoints >= 3 && gs.aiPoints >= 3) {
+    if (gs.playerPoints === gs.aiPoints) { pLabel = 'DUC'; aLabel = 'DUC'; }
+    else if (gs.playerPoints > gs.aiPoints) { pLabel = 'ADV'; aLabel = ''; }
+    else { pLabel = ''; aLabel = 'ADV'; }
+  }
+  
+  document.getElementById('hudPlayerScore').textContent = pLabel;
+  document.getElementById('hudAIScore').textContent = aLabel;
+  document.getElementById('hudPlayerSets').textContent = `Sets: ${gs.playerSets} | Games: ${gs.playerGames}`;
+  document.getElementById('hudAISets').textContent = `Sets: ${gs.aiSets} | Games: ${gs.aiGames}`;
+  document.getElementById('hudSetScore').textContent = `${gs.playerGames} - ${gs.aiGames}`;
+}
+
+function renderGame() {
+  const W = canvas.width, H = canvas.height;
+  
+  // Background flash on hit
+  if (hitFlash > 0) {
+    ctx2d.fillStyle = `rgba(212,255,0,${hitFlash*0.02})`;
+    ctx2d.fillRect(0,0,W,H);
+  }
+  
+  // Court
+  ctx2d.fillStyle = '#1a4a0a';
+  ctx2d.fillRect(0,0,W,H);
+  
+  // Court surface
+  ctx2d.fillStyle = '#2d6b1a';
+  ctx2d.fillRect(20,20,W-40,H-40);
+  
+  // Court lines
+  ctx2d.strokeStyle = LINE_COLOR;
+  ctx2d.lineWidth = 2;
+  
+  // Outer boundary
+  ctx2d.strokeRect(20,20,W-40,H-40);
+  
+  // Net
+  ctx2d.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx2d.lineWidth = 3;
+  ctx2d.beginPath();
+  ctx2d.moveTo(20, H/2);
+  ctx2d.lineTo(W-20, H/2);
+  ctx2d.stroke();
+  
+  // Net posts
+  ctx2d.fillStyle = '#888';
+  ctx2d.fillRect(15, H/2-5, 10, 10);
+  ctx2d.fillRect(W-25, H/2-5, 10, 10);
+  
+  // Service boxes
+  ctx2d.strokeStyle = LINE_COLOR;
+  ctx2d.lineWidth = 1.5;
+  ctx2d.beginPath();
+  ctx2d.moveTo(W/2, 20); ctx2d.lineTo(W/2, H-20); // Center line
+  ctx2d.moveTo(20, H/4); ctx2d.lineTo(W-20, H/4); // Service line top
+  ctx2d.moveTo(20, H*3/4); ctx2d.lineTo(W-20, H*3/4); // Service line bottom
+  ctx2d.stroke();
+  
+  // Ball trail
+  ball.trail.forEach((t,i) => {
+    const alpha = (i/ball.trail.length) * 0.4;
+    const size = ball.r * (i/ball.trail.length) * 0.8;
+    ctx2d.beginPath();
+    ctx2d.arc(t.x, t.y, size, 0, Math.PI*2);
+    ctx2d.fillStyle = `rgba(212,255,0,${alpha})`;
+    ctx2d.fill();
+  });
+  
+  // Ball
+  const ballGrad = ctx2d.createRadialGradient(ball.x-2, ball.y-2, 1, ball.x, ball.y, ball.r);
+  ballGrad.addColorStop(0, '#f0ff80');
+  ballGrad.addColorStop(1, '#a8cc00');
+  ctx2d.beginPath();
+  ctx2d.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx2d.fillStyle = ballGrad;
+  ctx2d.fill();
+  ctx2d.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx2d.lineWidth = 1;
+  ctx2d.stroke();
+  
+  // Ball curve lines
+  ctx2d.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx2d.lineWidth = 1;
+  ctx2d.beginPath();
+  ctx2d.arc(ball.x, ball.y, ball.r*0.7, 0.3, Math.PI*0.8);
+  ctx2d.stroke();
+  
+  // Player paddle
+  drawPaddle(playerPaddle, '#00d4ff');
+  
+  // AI paddle
+  drawPaddle(aiPaddle, '#ff6b35');
+  
+  // Particles
+  particles.forEach(p => {
+    ctx2d.beginPath();
+    ctx2d.arc(p.x, p.y, p.r * p.alpha, 0, Math.PI*2);
+    ctx2d.fillStyle = `rgba(${p.color},${p.alpha})`;
+    ctx2d.fill();
+  });
+}
+
+function drawPaddle(paddle, color) {
+  const x = paddle.x - paddle.w/2;
+  const y = paddle.y - paddle.h/2;
+  
+  // Shadow
+  ctx2d.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx2d.beginPath();
+  ctx2d.roundRect(x+3, y+3, paddle.w, paddle.h, 6);
+  ctx2d.fill();
+  
+  // Paddle body
+  const grad = ctx2d.createLinearGradient(x, y, x, y+paddle.h);
+  grad.addColorStop(0, color);
+  grad.addColorStop(1, color + '88');
+  ctx2d.fillStyle = grad;
+  ctx2d.beginPath();
+  ctx2d.roundRect(x, y, paddle.w, paddle.h, 6);
+  ctx2d.fill();
+  
+  // Shine
+  ctx2d.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx2d.beginPath();
+  ctx2d.roundRect(x+4, y+2, paddle.w-8, paddle.h/3, 3);
+  ctx2d.fill();
+}
+
+function spawnParticles(x, y, hex, count) {
+  const rgb = hexToRgb(hex);
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI*2/count)*i + Math.random()*0.5;
+    const speed = 2 + Math.random()*4;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle)*speed,
+      vy: Math.sin(angle)*speed,
+      r: 2 + Math.random()*3,
+      life: 20 + Math.random()*20,
+      maxLife: 40,
+      alpha: 1,
+      color: rgb
+    });
+  }
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+// ============================================================
+// MATCH END
+// ============================================================
+function endMatch(playerWon) {
+  matchOver = true;
+  document.removeEventListener('keydown', onKeyDown);
+  document.removeEventListener('keyup', onKeyUp);
+  
+  const p = gameState.player;
+  const t = gameState.currentTournament;
+  const opp = gameState.currentOpponent;
+  
+  // Calculate rewards
+  const roundMultiplier = gameState.currentRound / t.rounds;
+  let prize = Math.floor(t.prize * roundMultiplier * (playerWon ? 1 : 0.1));
+  let xpGain = Math.floor(50 + t.rankPoints * 0.1 * (playerWon ? 1.5 : 0.5));
+  let rankPtsGain = playerWon ? Math.floor(t.rankPoints * roundMultiplier) : 0;
+  
+  // Sponsor bonus
+  let sponsorBonus = 1;
+  p.sponsors.forEach(sid => {
+    const sp = sponsorsData.find(s => s.id === sid);
+    if (sp) sponsorBonus = Math.max(sponsorBonus, sp.bonus);
+  });
+  if (playerWon) prize = Math.floor(prize * sponsorBonus);
+  
+  // Apply rewards
+  p.money += prize;
+  p.stats.totalMoney += prize;
+  p.stats.matchesPlayed++;
+  p.stats.aces += gameScore.aces || 0;
+  p.stats.winners += gameScore.winners || 0;
+  
+  if (playerWon) {
+    p.stats.matchesWon++;
+    p.rankPoints += rankPtsGain;
+    playSound('win');
+    
+    // Check if tournament won
+    if (gameState.currentRound >= t.rounds) {
+      p.stats.tournamentsWon++;
+    }
+  } else {
+    playSound('fault');
+  }
+  
+  // Add XP
+  addXP(xpGain);
+  
+  // Update ranking
+  updateWorldRanking();
+  
+  // Match history
+  p.matchHistory.push({
+    tournament: t.name,
+    opponent: opp.name,
+    round: `Round ${gameState.currentRound}`,
+    won: playerWon,
+    prize: prize
+  });
+  
+  saveGame();
+  
+  // Show result
+  const resultOverlay = document.getElementById('resultOverlay');
+  document.getElementById('resultTitle').textContent = playerWon ? '🏆 VITÓRIA!' : '😔 DERROTA';
+  document.getElementById('resultTitle').className = `result-title ${playerWon?'result-win':'result-lose'}`;
+  document.getElementById('resultDetails').textContent = `vs ${opp.name} • ${t.name} Round ${gameState.currentRound}`;
+  document.getElementById('resultRewards').innerHTML = `
+    <div class="reward-item reward-xp">⭐ +${xpGain} XP</div>
+    <div class="reward-item reward-money">💰 +$${prize.toLocaleString()}</div>
+    ${playerWon?`<div class="reward-item" style="color:#7b2fff">📊 +${rankPtsGain} pontos de ranking</div>`:''}
+    ${playerWon&&gameState.currentRound<t.rounds?`<div class="reward-item" style="color:#00d4ff">➡️ Próximo round disponível!</div>`:''}
+  `;
+  
+  resultOverlay.classList.add('visible');
+}
+
+function afterMatch() {
+  const p = gameState.player;
+  const t = gameState.currentTournament;
+  
+  document.getElementById('resultOverlay').classList.remove('visible');
+  
+  // If won and more rounds available
+  if (p.matchHistory.length > 0) {
+    const lastMatch = p.matchHistory[p.matchHistory.length-1];
+    if (lastMatch.won && gameState.currentRound < t.rounds) {
+      gameState.currentRound++;
+      generateOpponent();
+      startMatch();
+      return;
+    }
+  }
+  
+  // Back to career
+  showScreen('careerScreen');
+  updateCareerUI();
+  
+  // Check level up pending
+  if (gameState.pendingLevelUp) {
+    gameState.pendingLevelUp = false;
+    showLevelUp();
+  }
+}
+
+function quitMatch() {
+  matchOver = true;
+  document.removeEventListener('keydown', onKeyDown);
+  document.removeEventListener('keyup', onKeyUp);
+  if (gameLoop) cancelAnimationFrame(gameLoop);
+  document.getElementById('pauseOverlay').classList.remove('visible');
+  showScreen('careerScreen');
+  updateCareerUI();
+}
+
+// ============================================================
+// XP & LEVELING
+// ============================================================
+function addXP(amount) {
+  const p = gameState.player;
+  p.xp += amount;
+  p.stats.totalXP += amount;
+  
+  while (p.xp >= p.xpToNext) {
+    p.xp -= p.xpToNext;
+    p.level++;
+    p.attrPoints += 3;
+    p.xpToNext = Math.floor(100 * Math.pow(1.3, p.level - 1));
+    gameState.pendingLevelUp = true;
+    playSound('levelup');
+  }
+}
+
+function showLevelUp() {
+  const p = gameState.player;
+  document.getElementById('levelUpText').textContent = `Nível ${p.level}`;
+  document.getElementById('levelUpOverlay').classList.add('visible');
+}
+
+function closeLevelUp() {
+  document.getElementById('levelUpOverlay').classList.remove('visible');
+  showScreen('careerScreen');
+  showCareerSection('attributes');
+  updateCareerUI();
+}
+
+// ============================================================
+// INPUT
+// ============================================================
+function onKeyDown(e) {
+  keys[e.key] = true;
+  if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+    togglePause();
+    e.preventDefault();
+  }
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) {
+    e.preventDefault();
+  }
+}
+
+function onKeyUp(e) {
+  keys[e.key] = false;
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pauseOverlay').classList.toggle('visible', paused);
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+let notifTimeout = null;
+function showNotification(msg) {
+  const el = document.getElementById('notification');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (notifTimeout) clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// CANVAS RESIZE
+// ============================================================
+window.addEventListener('resize', () => {
+  if (document.getElementById('gameScreen').classList.contains('active') && canvas) {
+    const hud = document.querySelector('.game-hud');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - hud.offsetHeight - 30;
+    if (playerPaddle) {
+      playerPaddle.y = canvas.height - 60;
+      aiPaddle.y = 60;
+    }
+  }
+});
+
+// ============================================================
+// ROUNDRECT POLYFILL
+// ============================================================
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
+    this.beginPath();
+    this.moveTo(x+r,y);
+    this.lineTo(x+w-r,y);
+    this.quadraticCurveTo(x+w,y,x+w,y+r);
+    this.lineTo(x+w,y+h-r);
+    this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    this.lineTo(x+r,y+h);
+    this.quadraticCurveTo(x,y+h,x,y+h-r);
+    this.lineTo(x,y+r);
+    this.quadraticCurveTo(x,y,x+r,y);
+    this.closePath();
+  };
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initMenu();
+updateAttrPreview();
+</script>
 </body>
 </html>
