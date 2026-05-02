@@ -1135,8 +1135,8 @@ function initMatchState() {
   
   ball = {
     x: W/2, y: H/2,
-    vx: (Math.random()>0.5?1:-1) * 4,
-    vy: (Math.random()>0.5?1:-1) * 3,
+    vx: (Math.random()>0.5?1:-1) * (1.5 + Math.random() * 2),
+    vy: (Math.random()>0.5?1:-1) * (3.5 + Math.random() * 1.5),
     r: 8,
     speed: 4,
     trail: []
@@ -1180,7 +1180,8 @@ let lastTime = 0;
 
 function gameFrame(ts) {
   if (matchOver) return;
-  const dt = Math.min((ts - lastTime) / 16.67, 3);
+  // Cap dt hard at 1 to prevent huge jumps when tab loses focus
+  const dt = Math.min((ts - lastTime) / 16.67, 1);
   lastTime = ts;
   
   if (!paused) {
@@ -1193,6 +1194,7 @@ function gameFrame(ts) {
 function updateGame(dt) {
   const W = canvas.width, H = canvas.height;
   const eff = getEffectiveAttrs();
+  const minSpeed = 3.5;
   
   // Player movement
   const spd = playerPaddle.speed * dt;
@@ -1217,13 +1219,26 @@ function updateGame(dt) {
   // Ball movement
   ball.trail.push({x:ball.x,y:ball.y});
   if (ball.trail.length > 8) ball.trail.shift();
-  
+
+  // Ensure ball always has minimum speed - never gets stuck
+  const minSpeed = 3.5;
+  const curSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+  if (curSpeed < minSpeed) {
+    const scale = minSpeed / (curSpeed || 1);
+    ball.vx *= scale;
+    ball.vy *= scale;
+    // If vy is nearly zero, give it a direction
+    if (Math.abs(ball.vy) < 1.5) ball.vy = ball.vy >= 0 ? 2 : -2;
+  }
+  // Also ensure vx is never exactly 0 (ball going perfectly vertical = boring)
+  if (Math.abs(ball.vx) < 0.5) ball.vx = (Math.random() > 0.5 ? 1 : -1) * 1.5;
+
   ball.x += ball.vx * dt;
   ball.y += ball.vy * dt;
   
   // Wall bounce
-  if (ball.x - ball.r < 0) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); playSound('bounce'); }
-  if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); playSound('bounce'); }
+  if (ball.x - ball.r < 0) { ball.x = ball.r; ball.vx = Math.abs(ball.vx) + 0.5; playSound('bounce'); }
+  if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.vx = -(Math.abs(ball.vx) + 0.5); playSound('bounce'); }
   
   // Player paddle collision
   if (ball.vy > 0 &&
@@ -1235,9 +1250,12 @@ function updateGame(dt) {
     const hitPos = (ball.x - playerPaddle.x) / (playerPaddle.w/2);
     const spinFactor = 1 + eff.spin * 0.05;
     ball.vx = hitPos * 6 * spinFactor;
-    ball.vy = -Math.abs(ball.vy) * (1 + eff.serve * 0.03);
+    // Ensure vx has minimum magnitude so ball doesn't go straight up
+    if (Math.abs(ball.vx) < 1) ball.vx = (hitPos >= 0 ? 1 : -1) * 1.5;
+    const newSpeed = Math.max(Math.abs(ball.vy) * (1 + eff.serve * 0.03), minSpeed);
+    ball.vy = -newSpeed;
     ball.speed = Math.min(ball.speed * 1.05, 12);
-    ball.y = playerPaddle.y - playerPaddle.h/2 - ball.r;
+    ball.y = playerPaddle.y - playerPaddle.h/2 - ball.r - 1;
     
     hitFlash = 10;
     spawnParticles(ball.x, ball.y, '#d4ff00', 8);
@@ -1254,9 +1272,11 @@ function updateGame(dt) {
     
     const hitPos = (ball.x - aiPaddle.x) / (aiPaddle.w/2);
     ball.vx = hitPos * 5 * (1 + opp.precision * 0.04);
-    ball.vy = Math.abs(ball.vy) * (1 + opp.serve * 0.02);
+    if (Math.abs(ball.vx) < 1) ball.vx = (hitPos >= 0 ? 1 : -1) * 1.5;
+    const newSpeedAI = Math.max(Math.abs(ball.vy) * (1 + opp.serve * 0.02), minSpeed);
+    ball.vy = newSpeedAI;
     ball.speed = Math.min(ball.speed * 1.03, 11);
-    ball.y = aiPaddle.y + aiPaddle.h/2 + ball.r;
+    ball.y = aiPaddle.y + aiPaddle.h/2 + ball.r + 1;
     
     spawnParticles(ball.x, ball.y, '#ff6b35', 6);
     playSound('hit');
@@ -1352,8 +1372,9 @@ function resetBall() {
   const W = canvas.width, H = canvas.height;
   ball.x = W/2;
   ball.y = H/2;
-  ball.vx = (Math.random()>0.5?1:-1) * 4;
-  ball.vy = (Math.random()>0.5?1:-1) * 3;
+  // Guarantee non-trivial angle: vx between 1.5 and 3.5, vy always strong
+  ball.vx = (Math.random()>0.5?1:-1) * (1.5 + Math.random() * 2);
+  ball.vy = (Math.random()>0.5?1:-1) * (3.5 + Math.random() * 1.5);
   ball.speed = 4;
   ball.trail = [];
 }
@@ -1703,6 +1724,15 @@ function showNotification(msg) {
   if (notifTimeout) clearTimeout(notifTimeout);
   notifTimeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
+
+// ============================================================
+// VISIBILITY CHANGE - reset lastTime so dt doesn't spike
+// ============================================================
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    lastTime = performance.now();
+  }
+});
 
 // ============================================================
 // CANVAS RESIZE
